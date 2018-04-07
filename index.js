@@ -1,4 +1,5 @@
 import express from "express";
+const dotenv = require("dotenv").config();
 
 const obj = {
   a: 1,
