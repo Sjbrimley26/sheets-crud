@@ -1,21 +1,15 @@
 import express from "express";
 const dotenv = require("dotenv").config();
+import path from "path";
 
-const obj = {
-  a: 1,
-  b: 2
-};
+const PORT = process.env.PORT;
+const app = express();
 
-let copy = { ...obj };
+app.use(express.static(path.join(__dirname, "client/build")));
 
-const funky = async () => {
-  return "Chicken";
-};
+app.get(["/", "/*"], (req, res) => {
+  res.sendFile(path.join(__dirname, "client/build/", "index.html"));
+});
 
-funky()
-  .then(data => {
-    console.log("Data ", data);
-  })
-  .catch(err => {
-    console.log(err);
-  });
+app.listen(PORT);
+console.log("Now listening on port", PORT);
