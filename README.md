@@ -1,4 +1,3 @@
-# new_project
-Boilerplate React / React Router - Express - Webpack - Babel Config
+# Sheets CRUD
 
-Just add an .env file with PORT=(some number)
+Basically just a search engine for our company Google Sheets file.
