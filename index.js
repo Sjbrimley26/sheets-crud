@@ -82,17 +82,22 @@ const fields = {
   PHONE: "D",
   EMAIL: "E",
   PLANS_RECEIVED: "F",
-  TAKE_OFF_MADE: "G",
-  QUOTE_MADE: "H",
-  QUOTE_CHECKED: "I",
-  QUOTE_SENT: "J",
-  OK: "K",
-  REVISE: "L",
-  DENIED: "M",
-  DEADLINE: "N",
-  PURCHASE_MADE: "O",
-  MATERIALS_ORDERED: "P",
-  NOTES: "Q"
+  PLANS_RECEIVED_BY: "G",
+  TAKE_OFF_MADE: "H",
+  TAKE_OFF_MADE_BY: "I",
+  QUOTE_MADE: "J",
+  QUOTE_MADE_BY: "K",
+  QUOTE_CHECKED: "L",
+  QUOTE_CHECKED_BY: "M",
+  QUOTE_SENT: "N",
+  QUOTE_SENT_BY: "O",
+  OK: "P",
+  REVISE: "Q",
+  DENIED: "R",
+  DEADLINE: "S",
+  PURCHASE_MADE: "T",
+  MATERIALS_ORDERED: "U",
+  NOTES: "V"
 };
 
 const reverseFields = {
@@ -102,17 +107,22 @@ const reverseFields = {
   D: "PHONE",
   E: "EMAIL",
   F: "PLANS_RECEIVED",
-  G: "TAKE_OFF_MADE",
-  H: "QUOTE_MADE",
-  I: "QUOTE_CHECKED",
-  J: "QUOTE_SENT",
-  K: "OK",
-  L: "REVISE",
-  M: "DENIED",
-  N: "DEADLINE",
-  O: "PURCHASE_MADE",
-  P: "MATERIALS_ORDERED",
-  Q: "NOTES"
+  G: "PLANS_RECEIVED_BY",
+  H: "TAKE_OFF_MADE",
+  I: "TAKE_OFF_MADE_BY",
+  J: "QUOTE_MADE",
+  K: "QUOTE_MADE_BY",
+  L: "QUOTE_CHECKED",
+  M: "QUOTE_CHECKED_BY",
+  N: "QUOTE_SENT",
+  O: "QUOTE_SENT_BY",
+  P: "OK",
+  Q: "REVISE",
+  R: "DENIED",
+  S: "DEADLINE",
+  T: "PURCHASE_MADE",
+  U: "MATERIALS_ORDERED",
+  V: "NOTES"
 };
 
 const letterNumbers = {
@@ -132,58 +142,49 @@ const letterNumbers = {
   N: 13,
   O: 14,
   P: 15,
-  Q: 16
+  Q: 16,
+  R: 17,
+  S: 18,
+  T: 19,
+  U: 20,
+  V: 21
 };
 
-const start = auth => {
-  const sheets = google.sheets({ version: "v4", auth });
+const numberFields = {
+  0: "COMPANY",
+  1: "CONTACT_NAME",
+  2: "JOB_NAME",
+  3: "PHONE",
+  4: "EMAIL",
+  5: "PLANS_RECEIVED",
+  6: "PLANS_RECEIVED_BY",
+  7: "TAKE_OFF_MADE",
+  8: "TAKE_OFF_MADE_BY",
+  9: "QUOTE_MADE",
+  10: "QUOTE_MADE_BY",
+  11: "QUOTE_CHECKED",
+  12: "QUOTE_CHECKED_BY",
+  13: "QUOTE_SENT",
+  14: "QUOTE_SENT_BY",
+  15: "OK",
+  16: "REVISE",
+  17: "DENIED",
+  18: "DEADLINE",
+  19: "PURCHASE_MADE",
+  20: "MATERIALS_ORDERED",
+  21: "NOTES"
+};
 
-  const searchByFields = fieldArray => {
-    let searchLetters = Object.keys(fields)
-      .map(field => (fieldArray.includes(field) ? fields[field] : null))
-      .filter(value => value != null)
-      .sort();
+const sortOptions = [
+  "ALL",
+  "TAKEOFF_INCOMPLETE",
+  "INCOMPLETE_BY_RECEIVED",
+  "ALL_BY_RECEIVED"
+];
 
-    let searchFields = Object.keys(reverseFields)
-      .map(
-        field => (searchLetters.includes(field) ? reverseFields[field] : null)
-      )
-      .filter(value => value != null);
+// MAIN LOOP
 
-    let rowNumbers = searchLetters.map(letter => letterNumbers[letter]);
-
-    const range = `${searchLetters[0]}5:${
-      searchLetters[searchLetters.length - 1]
-    }`;
-
-    sheets.spreadsheets.values.get(
-      {
-        spreadsheetId: process.env.SHEETID,
-        range: range
-      },
-      (err, { data }) => {
-        if (err) return console.log("The API returned an error: " + err);
-        const rows = data.values;
-        if (rows.length) {
-          console.log(searchFields);
-          // Print columns A and E, which correspond to indices 0 and 4.
-          rows.map(row => {
-            if (row[0]) {
-              let string = "";
-              rowNumbers.forEach(
-                number => (row[number] ? (string += `${row[number]}  `) : null)
-              );
-              console.log(string);
-            }
-          });
-        } else {
-          console.log("No data found.");
-        }
-      }
-    );
-  };
-
-  searchByFields(["COMPANY", "EMAIL", "NOTES"]);
+const start = async auth => {
 
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "client/build/", "index.html"));
@@ -191,6 +192,123 @@ const start = auth => {
 
   app.post("/DB", (req, res) => {});
 
-  app.listen(PORT);
-  console.log("Now listening on port", PORT);
+  app.listen(PORT, () => {
+    console.log("Now listening on port", PORT);
+    searchByFields(auth)(["COMPANY", "NOTES"], "ALL_BY_RECEIVED");
+  });
+};
+
+
+// SEARCH FUNCTION
+
+const searchByFields = auth => (fieldArray = [], sortOption) => {
+  // Initialize search variables
+  const sheets = google.sheets({ version: "v4", auth });
+
+  const searchLetters = Object.keys(fields)
+    .map(field => (fieldArray.includes(field) ? fields[field] : null))
+    .filter(value => value != null)
+    .sort();
+
+  const searchFields = Object.keys(reverseFields)
+    .map(
+      field => (searchLetters.includes(field) ? reverseFields[field] : null)
+    )
+    .filter(value => value != null);
+
+  const rowNumbers = searchLetters.map(letter => letterNumbers[letter]);
+
+  const range =
+    sortOption === "INCOMPLETE"
+      ? "A5:V"
+      : fieldArray.length === 0
+        ? "A5:V"
+        : `${searchLetters[0]}5:${searchLetters[searchLetters.length - 1]}`;
+
+  let sortFunction;
+
+  const allSort = results => {
+    return results;
+  };
+
+  const uncompletedSortByName = name => results => {
+    return results.filter(item => {
+      return !item.hasOwnProperty(name);
+    });
+  };
+
+  const sortByDateByField = name => results => {
+    return results
+      .filter(item => {
+        return (item.hasOwnProperty(name) &&
+               !isNaN(Date.parse(item[name])));
+      })
+      .sort((a,b) => {
+        return Date.parse(a[name]) - Date.parse(b[name]);
+    });
+  };
+
+  const convertResultsToObjs = sortfn => (err, response) => {
+    if (err) return console.log("The API returned an error: " + err);
+    const { data } = response;
+    const rows = data.values;
+    if (rows.length) {
+      let foundRows = rows.reduce((result, row) => {
+        if (row[0] || row[1]) {
+          //Ignore results without a 'Company' or 'Contact' entry
+          result.push(row);
+        }
+        return result;
+      }, []);
+
+      let objectifiedRows = foundRows.map(row => {
+        let newRow = row
+          .map((item, i) => {
+            let objFromItem = {};
+            objFromItem[numberFields[i]] = item;
+            return objFromItem;
+          })
+          .filter(obj => {
+            return (
+              Object.values(obj)[0] !== undefined &&
+              Object.values(obj)[0].length !== 0
+            );
+          })
+          .reduce((result, item) => {
+            let key = Object.keys(item)[0];
+            result[key] = Object.values(item)[0];
+            return result;
+          }, {});
+        return newRow;
+      });
+      
+      console.log(sortfn(objectifiedRows));
+      return sortfn(objectifiedRows);
+    } else {
+      console.log("No data found.");
+    }
+  };
+
+  switch (sortOption) {
+    case "ALL":
+      sortFunction = allSort;
+      break;
+    case "TAKEOFF_INCOMPLETE":
+      sortFunction = uncompletedSortByName("TAKE_OFF_MADE");
+      break;
+    case "ALL_BY_RECEIVED":
+      sortFunction = sortByDateByField("PLANS_RECEIVED");
+      break;
+    case "INCOMPLETE_BY_RECEIVED":
+      break;
+  }
+
+  //Perform the search
+  sheets.spreadsheets.values.get(
+    {
+      spreadsheetId: process.env.SHEETID,
+      range: range
+    },
+    convertResultsToObjs(sortFunction)
+  );
 };
