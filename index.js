@@ -179,7 +179,8 @@ const sortOptions = [
   "ALL",
   "TAKEOFF_INCOMPLETE",
   "INCOMPLETE_BY_RECEIVED",
-  "ALL_BY_RECEIVED"
+  "ALL_BY_RECEIVED",
+  "CUSTOMER"
 ];
 
 // MAIN LOOP
@@ -194,14 +195,14 @@ const start = async auth => {
 
   app.listen(PORT, () => {
     console.log("Now listening on port", PORT);
-    searchByFields(auth)(["COMPANY", "NOTES"], "ALL_BY_RECEIVED");
+    searchByFields(auth)(["COMPANY", "NOTES"], ["ALL_BY_RECEIVED"]);
   });
 };
 
 
 // SEARCH FUNCTION
 
-const searchByFields = auth => (fieldArray = [], sortOption) => {
+const searchByFields = auth => (fieldArray = [], sortOption = []) => {
   // Initialize search variables
   const sheets = google.sheets({ version: "v4", auth });
 
@@ -219,11 +220,13 @@ const searchByFields = auth => (fieldArray = [], sortOption) => {
   const rowNumbers = searchLetters.map(letter => letterNumbers[letter]);
 
   const range =
-    sortOption === "INCOMPLETE"
+    sortOption[0] === "INCOMPLETE"
       ? "A5:V"
       : fieldArray.length === 0
         ? "A5:V"
         : `${searchLetters[0]}5:${searchLetters[searchLetters.length - 1]}`;
+  
+  // SORT FUNCTIONS
 
   let sortFunction;
 
@@ -289,7 +292,9 @@ const searchByFields = auth => (fieldArray = [], sortOption) => {
     }
   };
 
-  switch (sortOption) {
+  let optionKey = sortOption[0];
+
+  switch (optionKey) {
     case "ALL":
       sortFunction = allSort;
       break;
@@ -298,6 +303,9 @@ const searchByFields = auth => (fieldArray = [], sortOption) => {
       break;
     case "ALL_BY_RECEIVED":
       sortFunction = sortByDateByField("PLANS_RECEIVED");
+      break;
+    case "CUSTOMER":
+      sortFunction = sortByCustomerName(sortOption[1]);
       break;
     case "INCOMPLETE_BY_RECEIVED":
       break;
