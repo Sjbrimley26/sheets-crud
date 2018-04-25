@@ -4,12 +4,21 @@ $bitter: "Bitter", serif;
 
 body,
 html {
-  background: rgb(80, 80, 255);
+  background:#a2c4db;
   color: white;
 }
 
 .flex {
   display: flex;
+}
+
+.width80 {
+  width: 80%;
+  margin: auto;
+}
+
+.spaceBetween {
+  justify-content: space-between;
 }
 
 .column {
@@ -18,6 +27,16 @@ html {
 
 .column--wide {
   flex: 2;
+}
+
+.topAndBottomMargin {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.miniTopAndBottomMargin {
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .resultDiv {
@@ -32,6 +51,16 @@ html {
   font-family: $bitter;
   min-width: 490px;
   transition: all 0.4s;
+}
+
+.selector {
+  max-width: 120px;
+  min-width: 90px;
+  padding: 10px 0 10px 0;
+}
+
+.red {
+  background: red;
 }
 
 .loader {
@@ -83,7 +112,7 @@ html {
 }
 
 .loader:after {
-  background: rgb(80, 80, 255);
+  background: #a2c4db;
   width: 75%;
   height: 75%;
   border-radius: 50%;
