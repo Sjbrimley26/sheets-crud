@@ -1,9 +1,12 @@
 import express from "express";
 const dotenv = require("dotenv").config();
 import path from "path";
+import bodyParser from "body-parser";
 
 const PORT = process.env.PORT;
 const app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const fs = require("fs");
 const readline = require("readline");
@@ -178,10 +181,13 @@ const numberFields = {
 const sortOptions = [
   "ALL",
   "TAKEOFF_INCOMPLETE",
-  "INCOMPLETE_BY_RECEIVED",
+  "QUOTE_INCOMPLETE",
   "ALL_BY_RECEIVED",
-  "CUSTOMER"
+  "CUSTOMER",
+  "COMPANY"
 ];
+
+// e.g. "CUSTOMER", "John Landry"
 
 // MAIN LOOP
 
@@ -191,18 +197,20 @@ const start = async auth => {
     res.sendFile(path.join(__dirname, "client/build/", "index.html"));
   });
 
-  app.post("/DB", (req, res) => {});
+  app.post("/DB", (req, res) => {
+    const { fields, sortOption } = req.body;
+    searchByFields(auth)(fields, sortOption)(req, res);
+  });
 
   app.listen(PORT, () => {
     console.log("Now listening on port", PORT);
-    searchByFields(auth)(["COMPANY", "NOTES"], ["ALL_BY_RECEIVED"]);
   });
 };
 
 
 // SEARCH FUNCTION
 
-const searchByFields = auth => (fieldArray = [], sortOption = []) => {
+const searchByFields = auth => (fieldArray = [], sortOption = []) => (req, res) => {
   // Initialize search variables
   const sheets = google.sheets({ version: "v4", auth });
 
@@ -220,11 +228,9 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => {
   const rowNumbers = searchLetters.map(letter => letterNumbers[letter]);
 
   const range =
-    sortOption[0] === "INCOMPLETE"
+    fieldArray.length === 0
       ? "A5:V"
-      : fieldArray.length === 0
-        ? "A5:V"
-        : `${searchLetters[0]}5:${searchLetters[searchLetters.length - 1]}`;
+      : `${searchLetters[0]}5:${searchLetters[searchLetters.length - 1]}`;
   
   // SORT FUNCTIONS
 
@@ -235,24 +241,42 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => {
   };
 
   const uncompletedSortByName = name => results => {
-    return results.filter(item => {
+    return sortByDateByField("PLANS_RECEIVED", true)(results.filter(item => {
       return !item.hasOwnProperty(name);
-    });
+    }));
   };
 
-  const sortByDateByField = name => results => {
+  const sortByDateByField = (name, includeNoDate = false) => results => {
+    let secondCondition = true;
     return results
       .filter(item => {
+        if (!includeNoDate) {
+          secondCondition = !isNaN(Date.parse(item[name]));
+        }
         return (item.hasOwnProperty(name) &&
-               !isNaN(Date.parse(item[name])));
+               secondCondition);
       })
       .sort((a,b) => {
         return Date.parse(a[name]) - Date.parse(b[name]);
     });
   };
 
-  const convertResultsToObjs = sortfn => (err, response) => {
-    if (err) return console.log("The API returned an error: " + err);
+  const sortByCustomerName = name => results => {
+    return results.filter(item => {
+      return item.hasOwnProperty("CONTACT_NAME") &&
+        new RegExp(name, "i").test(item.CONTACT_NAME);
+      });
+  };
+
+  const sortByCompanyName = name => results => {
+    return results.filter(item => {
+       return item.hasOwnProperty("COMPANY") && 
+        new RegExp(name, "i").test(item.COMPANY);
+    })
+  }
+
+  const convertResultsToObjs = sortfn => (error, response) => {
+    if (error) return res.json({ err: `The API returned an error ${error}`});
     const { data } = response;
     const rows = data.values;
     if (rows.length) {
@@ -265,7 +289,7 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => {
       }, []);
 
       let objectifiedRows = foundRows.map(row => {
-        let newRow = row
+        return row
           .map((item, i) => {
             let objFromItem = {};
             objFromItem[numberFields[i]] = item;
@@ -282,13 +306,12 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => {
             result[key] = Object.values(item)[0];
             return result;
           }, {});
-        return newRow;
       });
-      
-      console.log(sortfn(objectifiedRows));
-      return sortfn(objectifiedRows);
+
+      res.json(sortfn(objectifiedRows));
+
     } else {
-      console.log("No data found.");
+      res.json({ err: "No Data Found!"});
     }
   };
 
@@ -301,13 +324,17 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => {
     case "TAKEOFF_INCOMPLETE":
       sortFunction = uncompletedSortByName("TAKE_OFF_MADE");
       break;
+    case "QUOTE_INCOMPLETE":
+      sortFunction = uncompletedSortByName("QUOTE_MADE");
+      break;
     case "ALL_BY_RECEIVED":
       sortFunction = sortByDateByField("PLANS_RECEIVED");
       break;
     case "CUSTOMER":
       sortFunction = sortByCustomerName(sortOption[1]);
       break;
-    case "INCOMPLETE_BY_RECEIVED":
+    case "COMPANY":
+      sortFunction = sortByCompanyName(sortOption[1]);
       break;
   }
 

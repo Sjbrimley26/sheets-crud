@@ -18,6 +18,18 @@ module.exports = {
         query: {
           presets: ["react"]
         }
+      },
+      {
+        test: /\.scss$/,
+        use: [
+          { loader: "style-loader" },
+          { loader: "css-loader" },
+          { loader: "sass-loader" }
+        ]
+      },
+      {
+        test: /\.(jpe?g|png|gif|svg)$/i,
+        use: ["url-loader?limit=10000", "img-loader"]
       }
     ]
   },
