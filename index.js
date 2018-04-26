@@ -2,9 +2,11 @@ import express from "express";
 const dotenv = require("dotenv").config();
 import path from "path";
 import bodyParser from "body-parser";
+const compression = require("compression");
 
 const PORT = process.env.PORT;
 const app = express();
+app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -14,6 +16,7 @@ const { google } = require("googleapis");
 const OAuth2Client = google.auth.OAuth2;
 const SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"];
 const TOKEN_PATH = "credentials.json";
+
 
 app.use(express.static(path.join(__dirname, "client/build")));
 
@@ -275,6 +278,13 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (req, res) 
     })
   }
 
+  const sortByJobName = name => results => {
+    return results.filter(item => {
+      return item.hasOwnProperty("JOB_NAME") && 
+        new RegExp(name, "i").test(item.JOB_NAME);
+    });
+  }
+
   const convertResultsToObjs = sortfn => (error, response) => {
     if (error) return res.json({ err: `The API returned an error ${error}`});
     const { data } = response;
@@ -307,7 +317,6 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (req, res) 
             return result;
           }, {});
       });
-
       res.json(sortfn(objectifiedRows));
 
     } else {
@@ -335,6 +344,9 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (req, res) 
       break;
     case "COMPANY":
       sortFunction = sortByCompanyName(sortOption[1]);
+      break;
+    case "JOB":
+      sortFunction = sortByJobName(sortOption[1]);
       break;
   }
 

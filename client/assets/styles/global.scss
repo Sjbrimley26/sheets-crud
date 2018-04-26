@@ -14,7 +14,8 @@ html {
 
 .width80 {
   width: 80%;
-  margin: auto;
+  margin-left: 5px;
+  transition: all 0.4s;
 }
 
 .spaceBetween {
@@ -39,12 +40,16 @@ html {
   margin-bottom: 5px;
 }
 
+.miniMarginLeft {
+  margin-left: 5px;
+}
+
 .resultDiv {
   background: #378ec8;
   width: 95%;
   border-right: 4px double rgb(4, 4, 94);
   border-bottom: 4px solid rgb(4, 4, 94);
-  margin-bottom: 10px;
+  margin-top: 10px;
   padding: 10px 0 0 10px;
   border-radius: 0 0 35px 0;
   text-shadow: -1.1px 1.2px black;
@@ -56,11 +61,27 @@ html {
 .selector {
   max-width: 120px;
   min-width: 90px;
-  padding: 10px 0 10px 0;
+  padding: 10px 5px 10px 5px;
+  background: #4baced;
+  color: white;
+  border: 1px solid #4baced;
+  border-right: 1px solid #124668;
+  font-weight: 700;
 }
 
-.red {
-  background: red;
+.options {
+  margin-bottom: 10px;
+}
+
+.active {
+  background: #124668;
+}
+
+.searchBar {
+  margin: auto;
+  display: inline-block;
+  margin: 0 0 10px 33%;
+  width: 40%;
 }
 
 .loader {
@@ -144,5 +165,11 @@ html {
   100% {
     -webkit-transform: rotate(360deg);
     transform: rotate(360deg);
+  }
+}
+
+@media(min-width: 640px) {
+  .width80 {
+    margin: auto;
   }
 }

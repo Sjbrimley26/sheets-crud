@@ -1,4 +1,5 @@
-import React, { Component } from "react";
+import * as React from "react";
+const { Component } = React;
 import "../assets/styles/global.scss";
 
 const sortOptions = [
@@ -11,12 +12,13 @@ const sortOptions = [
 ];
 
 const prettifyProp = name => {
-  name = name.substring(0,1) + name.substring(1).toLowerCase();
+  name = name.substring(0, 1) + name.substring(1).toLowerCase();
   let i = name.indexOf("_");
   while (i >= 0) {
-    name = name.substring(0, i+1) 
-         + name.substring(i+1, i+2).toUpperCase() 
-         + name.substring(i+2);
+    name =
+      name.substring(0, i + 1) +
+      name.substring(i + 1, i + 2).toUpperCase() +
+      name.substring(i + 2);
 
     i = name.indexOf("_", i + 1);
   }
@@ -29,42 +31,41 @@ const handleJSONResponse = json => {
   } else {
     return Promise.resolve(json);
   }
-}
+};
 
 class Home extends Component {
   constructor(props) {
     super(props);
+    this.searchRef = React.createRef();
+
     this.openSearchBar = this.openSearchBar.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleSearch = this.handleSearch.bind(this);
+    this.handleEnter = this.handleEnter.bind(this);
+
     this.state = {
       loadingResults: true,
       searchResults: [],
       searchType: "TAKEOFF_INCOMPLETE",
       searchBarOpen: false,
       selectedButton: "",
-      activeButton: null,
-    }
+      activeButton: 1,
+      searchValue: ""
+    };
   }
 
   componentDidMount() {
-    fetch("/DB", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        fields: [],
-        sortOption: [sortOptions[0]]
-      })
-    })
-    .then(res => res.json())
-    .then(json => handleJSONResponse(json))
-    .then(data => this.setState({searchResults: data, loadingResults: false}))
-    .catch(err => alert("There was an error fetching the data!", err));
+    this.getFields.call(this, [sortOptions[0]], 1);
   }
 
-  getFields (option) {
-    this.setState({ loadingResults: true, searchResults: [], searchBarOpen: false });
-    const [ field ] = option;
+  getFields(option, buttonIndex) {
+    this.setState({
+      loadingResults: true,
+      searchResults: [],
+      searchBarOpen: false,
+      activeButton: buttonIndex
+    });
+    const [field] = option;
     fetch("/DB", {
       method: "POST",
       headers: {
@@ -75,21 +76,48 @@ class Home extends Component {
         sortOption: [...option]
       })
     })
-    .then(res => res.json())
-    .then(json => handleJSONResponse(json))
-    .then(data => this.setState({searchResults: data, loadingResults: false, searchType: field}))
-    .catch(err => alert("There was an error fetching the data!", err));
+      .then(res => res.json())
+      .then(json => handleJSONResponse(json))
+      .then(data =>
+        this.setState({
+          searchResults: data,
+          loadingResults: false,
+          searchType: field
+        })
+      )
+      .catch(err => alert("There was an error fetching the data!", err));
   }
 
-  openSearchBar (index) {
+  openSearchBar(index) {
     return e => {
-      this.setState({ searchBarOpen: true, activeButton: index});
-      e.target.className = 
-        e.target.className.includes("red")
-          ?  e.target.className
-          : e.target.className + " red";
-    }
+      this.setState({ searchBarOpen: true, activeButton: index });
+    };
+  }
 
+  handleInputChange(e) {
+    this.setState({ searchValue: e.target.value });
+  }
+
+  handleEnter(e) {
+    if (e.key === "Enter") {
+      this.handleSearch();
+    }
+  }
+
+  handleSearch() {
+    switch (this.state.activeButton) {
+      case 3:
+        this.getFields.call(this, [sortOptions[3], this.state.searchValue], 3);
+        break;
+      case 4:
+        this.getFields.call(this, [sortOptions[4], this.state.searchValue], 4);
+        break;
+      case 5:
+        this.getFields.call(this, [sortOptions[5], this.state.searchValue], 5);
+        break;
+    }
+    this.setState({ searchValue: "" });
+    this.searchRef.current.value = "";
   }
 
   render() {
@@ -105,10 +133,10 @@ class Home extends Component {
         headerText = "Now showing plans by date received";
         break;
       case "CUSTOMER":
-        headerText = "Now showing all of this customer\'s plans";
+        headerText = "Now showing all of this customer's plans";
         break;
       case "COMPANY":
-        headerText = "Now showwing all of this company\'s plans";
+        headerText = "Now showing all of this company's plans";
         break;
       case "JOB":
         headerText = "Now showing all jobs of a given job name";
@@ -119,51 +147,101 @@ class Home extends Component {
     }
 
     let { activeButton } = this.state;
-    console.log(activeButton);
 
     const getClassName = (name, index) => {
       if (index !== activeButton) {
         return name;
+      } else {
+        return name + " active";
       }
-      else {
-        return name + " red";
-      }
-    }
+    };
 
     return (
       <div>
         <h1>Welcome!</h1>
-        <div className="header"><h2>{headerText}</h2></div>
-        <div className="options flex topAndBottomMargin width80 spaceBetween">
-          <button onClick={this.getFields.bind(this, [sortOptions[2]])} className={getClassName("column selector", 0)}>All</button>
-          <button onClick={this.getFields.bind(this, [sortOptions[0]])} className={getClassName("column selector", 1)}>Incomplete Takeoffs</button>
-          <button onClick={this.getFields.bind(this, [sortOptions[1]])} className={getClassName("column selector", 2)}>Incomplete Quotes</button>
-          <button onClick={this.openSearchBar(3)} className={getClassName("column selector", 3)}>Search by Customer</button>
-          <button onClick={this.openSearchBar} className={getClassName("column selector", 4)}>Search By Company</button>
-          <button onClick={this.openSearchBar} className={getClassName("column selector", 5)}>Search by Job Name</button>
+        <div className="header">
+          <h2>{headerText}</h2>
         </div>
-        { this.state.searchBarOpen ? <div><input type="text"/></div> : null }
-        { this.state.loadingResults ? <div className="loader">Loading...</div> : null }
-        {
-          this.state.searchResults.length > 0
+        <div className="options flex topAndBottomMargin width80 spaceBetween">
+          <button
+            onClick={this.getFields.bind(this, [sortOptions[2]], 0)}
+            className={getClassName("column selector", 0)}
+          >
+            All
+          </button>
+          <button
+            onClick={this.getFields.bind(this, [sortOptions[0]], 1)}
+            className={getClassName("column selector", 1)}
+          >
+            Incomplete Takeoffs
+          </button>
+          <button
+            onClick={this.getFields.bind(this, [sortOptions[1]], 2)}
+            className={getClassName("column selector", 2)}
+          >
+            Incomplete Quotes
+          </button>
+          <button
+            onClick={this.openSearchBar(3)}
+            className={getClassName("column selector", 3)}
+          >
+            Search by Customer
+          </button>
+          <button
+            onClick={this.openSearchBar(4)}
+            className={getClassName("column selector", 4)}
+          >
+            Search By Company
+          </button>
+          <button
+            onClick={this.openSearchBar(5)}
+            className={getClassName("column selector", 5)}
+          >
+            Search by Job Name
+          </button>
+        </div>
+        {this.state.searchBarOpen ? (
+          <div>
+            <input
+              ref={this.searchRef}
+              onKeyPress={this.handleEnter}
+              onChange={this.handleInputChange}
+              className="searchBar"
+              type="text"
+            />
+            <button
+              onClick={this.handleSearch}
+              className="selector miniMarginLeft miniTopAndBottomMargin"
+            >
+              Search
+            </button>
+          </div>
+        ) : null}
+        {this.state.loadingResults ? (
+          <div className="loader">Loading...</div>
+        ) : null}
+        {this.state.searchResults.length > 0
           ? this.state.searchResults.map((result, i) => {
-            return (
-              <div className="resultDiv" key={i}>
-                {Object.entries(result).map((pair, j) => {
-                  let [ prop, val ] = pair;
-                  return <div className="flex" key={j}>
-                      <div className="column miniTopAndBottomMargin">
-                        {prettifyProp(prop)} :
+              return (
+                <div className="resultDiv" key={i}>
+                  {Object.entries(result).map((pair, j) => {
+                    let [prop, val] = pair;
+                    return (
+                      <div className="flex" key={j}>
+                        <div className="column miniTopAndBottomMargin">
+                          {prettifyProp(prop)} :
+                        </div>
+                        <div className="column--wide miniTopAndBottomMargin">
+                          {val}
+                        </div>
                       </div>
-                      <div className="column--wide miniTopAndBottomMargin">{val}</div>
-                    </div>;
-                })}
-                <br/>
-              </div>
-            )
-          })
-          : null
-        }
+                    );
+                  })}
+                  <br />
+                </div>
+              );
+            })
+          : null}
       </div>
     );
   }
