@@ -264,25 +264,11 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (req, res) 
     });
   };
 
-  const sortByCustomerName = name => results => {
+  const filterByFieldName = field => name => results => {
     return results.filter(item => {
-      return item.hasOwnProperty("CONTACT_NAME") &&
-        new RegExp(name, "i").test(item.CONTACT_NAME);
-      });
-  };
-
-  const sortByCompanyName = name => results => {
-    return results.filter(item => {
-       return item.hasOwnProperty("COMPANY") && 
-        new RegExp(name, "i").test(item.COMPANY);
-    })
-  }
-
-  const sortByJobName = name => results => {
-    return results.filter(item => {
-      return item.hasOwnProperty("JOB_NAME") && 
-        new RegExp(name, "i").test(item.JOB_NAME);
-    });
+      return item.hasOwnProperty(field) && 
+        new RegExp(name, "i").test(item[field]);
+    }) 
   }
 
   const convertResultsToObjs = sortfn => (error, response) => {
@@ -340,13 +326,13 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (req, res) 
       sortFunction = sortByDateByField("PLANS_RECEIVED");
       break;
     case "CUSTOMER":
-      sortFunction = sortByCustomerName(sortOption[1]);
+      sortFunction = filterByFieldName("CONTACT_NAME")(sortOption[1]);
       break;
     case "COMPANY":
-      sortFunction = sortByCompanyName(sortOption[1]);
+      sortFunction = filterByFieldName("COMPANY")(sortOption[1]);
       break;
     case "JOB":
-      sortFunction = sortByJobName(sortOption[1]);
+      sortFunction = filterByFieldName("JOB_NAME")(sortOption[1]);
       break;
   }
 
