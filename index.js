@@ -14,7 +14,7 @@ const fs = require("fs");
 const readline = require("readline");
 const { google } = require("googleapis");
 const OAuth2Client = google.auth.OAuth2;
-const SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"];
+const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
 const TOKEN_PATH = "credentials.json";
 
 
@@ -205,6 +205,10 @@ const start = async auth => {
     searchByFields(auth)(fields, sortOption)(req, res);
   });
 
+  app.post("/newPlan", (req, res) => {
+    addNewPlan(auth)(req, res);
+  });
+
   app.listen(PORT, () => {
     console.log("Now listening on port", PORT);
   });
@@ -345,3 +349,38 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (req, res) 
     convertResultsToObjs(sortFunction)
   );
 };
+
+const addNewPlan = auth  => (req, res) => {
+  const sheets = google.sheets({ version: "v4", auth });
+  console.log(req.body);
+  const date = new Date();
+  const dateString = (date.getMonth() + 1) + '/' + date.getDate() + '/' +  date.getFullYear();
+  const request = {
+    spreadsheetId: process.env.SHEETID,
+    range: "A:G",
+    insertDataOption: "INSERT_ROWS",
+    responseDateTimeRenderOption: "FORMATTED_STRING",
+    responseValueRenderOption: "FORMATTED_VALUE",
+    valueInputOption: "USER_ENTERED",
+    auth: auth,
+    resource: {
+      values: [[
+        req.body.COMPANY,
+        req.body.CONTACT,
+        req.body.JOB,
+        req.body.PHONE,
+        req.body.EMAIL,
+        dateString,
+        req.body.ENTERED_BY
+      ]]
+    } 
+  };
+
+  sheets.spreadsheets.values.append(request, (err, result) => {
+    if (err) {
+      console.log(err);
+      return;
+    }
+    console.log(result);
+  });
+}

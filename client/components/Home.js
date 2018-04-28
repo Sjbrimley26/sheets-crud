@@ -121,30 +121,6 @@ class Home extends Component {
   }
 
   render() {
-    let headerText;
-    switch (this.state.searchType) {
-      case "TAKEOFF_INCOMPLETE":
-        headerText = "Now showing plans without take-offs";
-        break;
-      case "QUOTE_INCOMPLETE":
-        headerText = "Now showing plans without quotes";
-        break;
-      case "ALL_BY_RECEIVED":
-        headerText = "Now showing plans by date received";
-        break;
-      case "CUSTOMER":
-        headerText = "Now showing all of this customer's plans";
-        break;
-      case "COMPANY":
-        headerText = "Now showing all of this company's plans";
-        break;
-      case "JOB":
-        headerText = "Now showing all jobs of a given job name";
-        break;
-      default:
-        headerText = "";
-        break;
-    }
 
     let { activeButton } = this.state;
 
@@ -158,10 +134,6 @@ class Home extends Component {
 
     return (
       <div>
-        <h1>Welcome!</h1>
-        <div className="header">
-          <h2>{headerText}</h2>
-        </div>
         <div className="options flex topAndBottomMargin width80 spaceBetween">
           <button
             onClick={this.getFields.bind(this, [sortOptions[2]], 0)}
