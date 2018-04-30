@@ -1,6 +1,7 @@
 import * as React from "react";
 const { Component } = React;
 import "../assets/styles/global.scss";
+import oboe from "oboe";
 
 const sortOptions = [
   "TAKEOFF_INCOMPLETE",
@@ -81,6 +82,14 @@ class Home extends Component {
       }),
       cached: false
     })
+    .on('node', '{}', (json) => {
+      return console.log("JSON", json);
+    })
+    .done((data) => {
+      console.log(data);
+    })
+
+    /*
       .then(res => {
         console.log(typeof(res));
         return res.json();
@@ -94,6 +103,7 @@ class Home extends Component {
         })
       )
       .catch(err => alert("There was an error fetching the data!", err));
+    */
   }
 
   openSearchBar(index) {
