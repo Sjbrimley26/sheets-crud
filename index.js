@@ -332,7 +332,11 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
               return result;
             }, {});
         });
-      res.json(sortfn(objectifiedRows));
+        let stream = fs.createReadStream(JSON.stringify(sortfn(objectifiedRows)));
+        console.log(stream);
+        console.log("Working so far");
+        stream.pipe(res);
+        //res.json(sortfn(objectifiedRows));
     } else {
       res.json({ err: "No Data Found!" });
     }

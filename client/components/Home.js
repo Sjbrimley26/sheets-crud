@@ -80,7 +80,10 @@ class Home extends Component {
         sortOption: [...option]
       })
     })
-      .then(res => res.json())
+      .then(res => {
+        console.log(res);
+        return res.json();
+      })
       .then(json => handleJSONResponse(json))
       .then(data =>
         this.setState({
