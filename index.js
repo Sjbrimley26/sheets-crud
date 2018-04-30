@@ -17,7 +17,6 @@ const OAuth2Client = google.auth.OAuth2;
 const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
 const TOKEN_PATH = "credentials.json";
 
-
 app.use(express.static(path.join(__dirname, "client/build")));
 
 // Load client secrets from a local file.
@@ -195,13 +194,19 @@ const sortOptions = [
 // MAIN LOOP
 
 const start = async auth => {
-
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "client/build/", "index.html"));
   });
 
   app.post("/DB", (req, res) => {
     const { fields, sortOption } = req.body;
+    /*
+      Example:
+      body: JSON.stringify({
+        fields: ["COMPANY", "NOTES"],
+        sortOption: ["TAKEOFF_INCOMPLETE"] 
+      })
+    */
     searchByFields(auth)(fields, sortOption)(req, res);
   });
 
@@ -214,10 +219,12 @@ const start = async auth => {
   });
 };
 
-
 // SEARCH FUNCTION
 
-const searchByFields = auth => (fieldArray = [], sortOption = []) => (req, res) => {
+const searchByFields = auth => (fieldArray = [], sortOption = []) => (
+  req,
+  res
+) => {
   // Initialize search variables
   const sheets = google.sheets({ version: "v4", auth });
 
@@ -227,9 +234,7 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (req, res) 
     .sort();
 
   const searchFields = Object.keys(reverseFields)
-    .map(
-      field => (searchLetters.includes(field) ? reverseFields[field] : null)
-    )
+    .map(field => (searchLetters.includes(field) ? reverseFields[field] : null))
     .filter(value => value != null);
 
   const rowNumbers = searchLetters.map(letter => letterNumbers[letter]);
@@ -238,7 +243,7 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (req, res) 
     fieldArray.length === 0
       ? "A5:V"
       : `${searchLetters[0]}5:${searchLetters[searchLetters.length - 1]}`;
-  
+
   // SORT FUNCTIONS
 
   let sortFunction;
@@ -248,9 +253,11 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (req, res) 
   };
 
   const uncompletedSortByName = name => results => {
-    return sortByDateByField("PLANS_RECEIVED", true)(results.filter(item => {
-      return !item.hasOwnProperty(name);
-    }));
+    return sortByDateByField("PLANS_RECEIVED", true)(
+      results.filter(item => {
+        return !item.hasOwnProperty(name);
+      })
+    );
   };
 
   const sortByDateByField = (name, includeNoDate = false) => results => {
@@ -260,57 +267,59 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (req, res) 
         if (!includeNoDate) {
           secondCondition = !isNaN(Date.parse(item[name]));
         }
-        return (item.hasOwnProperty(name) &&
-               secondCondition);
+        return item.hasOwnProperty(name) && secondCondition;
       })
-      .sort((a,b) => {
+      .sort((a, b) => {
         return Date.parse(a[name]) - Date.parse(b[name]);
-    });
+      });
   };
 
   const filterByFieldName = field => name => results => {
     return results.filter(item => {
-      return item.hasOwnProperty(field) && 
-        new RegExp(name, "i").test(item[field]);
-    }) 
-  }
+      return (
+        item.hasOwnProperty(field) && new RegExp(name, "i").test(item[field])
+      );
+    });
+  };
 
   const convertResultsToObjs = sortfn => (error, response) => {
-    if (error) return res.json({ err: `The API returned an error ${error}`});
+    if (error) return res.json({ err: `The API returned an error ${error}` });
     const { data } = response;
     const rows = data.values;
     if (rows.length) {
-      let foundRows = rows.reduce((result, row) => {
-        if (row[0] || row[1]) {
-          //Ignore results without a 'Company' or 'Contact' entry
-          result.push(row);
-        }
-        return result;
-      }, []);
-
-      let objectifiedRows = foundRows.map(row => {
-        return row
-          .map((item, i) => {
-            let objFromItem = {};
-            objFromItem[numberFields[i]] = item;
-            return objFromItem;
-          })
-          .filter(obj => {
-            return (
-              Object.values(obj)[0] !== undefined &&
-              Object.values(obj)[0].length !== 0
-            );
-          })
-          .reduce((result, item) => {
-            let key = Object.keys(item)[0];
-            result[key] = Object.values(item)[0];
-            return result;
-          }, {});
-      });
+      let objectifiedRows = rows
+        .reduce((result, row) => {
+          if (row[0] || row[1]) {
+            //Ignore results without a 'Company' or 'Contact' entry
+            result.push(row);
+          }
+          return result;
+        }, [])
+        .map(row => {
+          return row
+            .map((item, i) => {
+              let objFromItem = {};
+              // adds all fields to an object
+              objFromItem[numberFields[i]] = item;
+              return objFromItem;
+            })
+            .filter(obj => {
+              // removes empty fields
+              return (
+                Object.values(obj)[0] !== undefined &&
+                Object.values(obj)[0].length !== 0
+              );
+            })
+            .reduce((result, item) => {
+              // populates the object with relevant details
+              let key = Object.keys(item)[0];
+              result[key] = Object.values(item)[0];
+              return result;
+            }, {});
+        });
       res.json(sortfn(objectifiedRows));
-
     } else {
-      res.json({ err: "No Data Found!"});
+      res.json({ err: "No Data Found!" });
     }
   };
 
@@ -350,37 +359,48 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (req, res) 
   );
 };
 
-const addNewPlan = auth  => (req, res) => {
+const addNewPlan = auth => (req, res) => {
   const sheets = google.sheets({ version: "v4", auth });
-  console.log(req.body);
   const date = new Date();
-  const dateString = (date.getMonth() + 1) + '/' + date.getDate() + '/' +  date.getFullYear();
+  const dateString =
+    date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear();
+  let appendedArray = [
+    req.body.COMPANY,
+    req.body.CONTACT,
+    req.body.JOB,
+    req.body.PHONE,
+    req.body.EMAIL,
+    dateString,
+    req.body.ENTERED_BY
+  ];
+
+  let appendedRange = "A:G";
+
+  if (req.body.NOTES) {
+    appendedRange = "A:V";
+    appendedArray = appendedArray
+      .concat(Array(14).fill(null))
+      .concat(req.body.NOTES);
+  }
+
   const request = {
     spreadsheetId: process.env.SHEETID,
-    range: "A:G",
+    range: appendedRange,
     insertDataOption: "INSERT_ROWS",
     responseDateTimeRenderOption: "FORMATTED_STRING",
     responseValueRenderOption: "FORMATTED_VALUE",
     valueInputOption: "USER_ENTERED",
     auth: auth,
     resource: {
-      values: [[
-        req.body.COMPANY,
-        req.body.CONTACT,
-        req.body.JOB,
-        req.body.PHONE,
-        req.body.EMAIL,
-        dateString,
-        req.body.ENTERED_BY
-      ]]
-    } 
+      values: [appendedArray]
+    }
   };
 
   sheets.spreadsheets.values.append(request, (err, result) => {
     if (err) {
       console.log(err);
-      return;
+      return res.json({ err: err });
     }
-    console.log(result);
+    return res.json({ message: "data appended successfully" });
   });
-}
+};

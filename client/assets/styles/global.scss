@@ -1,6 +1,7 @@
 @import url(https://fonts.googleapis.com/css?family=Bitter);
 
 $bitter: "Bitter", serif;
+$normalBlue: #4baced;
 
 body,
 html {
@@ -8,24 +9,74 @@ html {
   color: white;
   margin: 0;
   padding: 0;
+  min-width: 550px;
+  z-index: -100;
 }
 
 .flex {
   display: flex;
 }
 
+.flex--column {
+  display: flex;
+  flex-direction: column;
+
+  h1 {
+    text-shadow: 3px 2px #4baced;
+    margin-left: 20px;
+  }
+}
+
+.block {
+  display: block;
+}
+
 .width80 {
   width: 80%;
   margin-left: 5px;
   transition: all 0.4s;
+  min-width: 320px;
 }
 
 .spaceBetween {
   justify-content: space-between;
 }
 
+.blueBackground {
+  background: $normalBlue;
+}
+
+.lowZ {
+  z-index: -10;
+}
+
 .column {
   flex: 1;
+
+  label {
+    background: $normalBlue;
+    padding-left: 20px;
+    font-weight: 600;
+    font-size: 1.2em;
+    text-shadow: 1px 2px #164d72;
+    border-bottom: 1px solid #164d72;
+    border-radius: 0 0 0 16px;
+    max-width: 200px;
+
+    &:before{
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 60px;
+      background: $normalBlue;
+      margin-right: 32px;
+      left: 5px;
+
+      @media(min-width: 640px) {
+        left: 10%;
+      }
+    }
+  }
 }
 
 .column--wide {
@@ -42,8 +93,26 @@ html {
   margin-bottom: 5px;
 }
 
+.topAndBottomPadding {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
 .miniMarginLeft {
   margin-left: 5px;
+}
+
+.leftAndRightMargin {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.rightMargin {
+  margin-right: 10px;
+}
+
+.bigRightMargin {
+  margin-right: 25px;
 }
 
 .resultDiv {

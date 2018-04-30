@@ -1,0 +1,40 @@
+.submitNewPlan {
+    float: right;
+    background: #81c4f2;
+    color: #10405f;
+    font-weight: 700;
+    font-size: 1.2em;
+    padding: 10px;
+    margin-right: 20px;
+    border-right: 4px solid rgba(0,0,139,0.2);
+    border-bottom: 4px solid rgba(0, 0, 139, 0.2);
+    border-radius: 16px;
+    text-shadow:  1px 1px #b6d9f0;
+
+    &:hover {
+        background: rgb(20, 20, 194);
+        color: white;
+        text-shadow: 1px 1px rgb(0, 0, 55);
+    }
+
+    @media(min-width: 1000px) {
+        margin-right: 45%;
+    }
+}
+
+.topBumper {
+    height: 40px;
+    border: 1px hidden;
+    border-radius: 16px 16px 0 0;
+}
+
+.bottomBumper {
+    height: 40px;
+    border: 1px hidden;
+    border-radius: 0 0 16px 16px;
+}
+
+.planInput {
+    max-width: 700px;
+    margin-left: 20%;
+}
