@@ -42,6 +42,8 @@ class Home extends Component {
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleSearch = this.handleSearch.bind(this);
     this.handleEnter = this.handleEnter.bind(this);
+    this.markQuoteComplete = this.markQuoteComplete.bind(this);
+    this.markTakeoffComplete = this.markTakeoffComplete.bind(this);
 
     this.state = {
       loadingResults: true,
@@ -120,6 +122,34 @@ class Home extends Component {
     this.searchRef.current.value = "";
   }
 
+  markTakeoffComplete(e) {
+    fetch("/api/takeoffComplete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id: e.target.value
+      })
+    })
+    .catch(err => alert("Error completing take-off", err))
+    .finally(() => this.getFields.call(this, ["TAKEOFF_INCOMPLETE"], 1))
+  }
+
+  markQuoteComplete(e) {
+    fetch("/api/quoteComplete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id: e.target.value
+      })
+    })
+    .catch(err => alert("Error completing quote", err))
+    .finally(() => this.getFields.call(this, ["QUOTE_INCOMPLETE"], 2));
+  }
+
   render() {
 
     let { activeButton } = this.state;
@@ -194,24 +224,41 @@ class Home extends Component {
         ) : null}
         {this.state.searchResults.length > 0
           ? this.state.searchResults.map((result, i) => {
-              return (
-                <div className="resultDiv" key={i}>
+              return <div className="resultDiv" key={i}>
+                { 
+                  (!result.TAKE_OFF_MADE || !result.QUOTE_MADE) ? 
+                  <div className="flex--column floatRight rightMargin">
+                    {
+                      !result.TAKE_OFF_MADE ?
+                        <button value={result.id} onClick={this.markTakeoffComplete} className="statusButton topAndBottomMargin">
+                          Take-off Completed
+                        </button> : null
+                    }
+                    {
+                      !result.QUOTE_MADE ?
+                        <button value={result.id} onClick={this.markQuoteComplete} className="statusButton">
+                          Quote Completed
+                        </button> : null
+                    }
+                  </div> : null
+                }
                   {Object.entries(result).map((pair, j) => {
                     let [prop, val] = pair;
-                    return (
-                      <div className="flex" key={j}>
-                        <div className="column miniTopAndBottomMargin">
-                          {prettifyProp(prop)} :
-                        </div>
-                        <div className="column--wide miniTopAndBottomMargin">
-                          {val}
-                        </div>
-                      </div>
-                    );
+                    if (prop !== "id") {
+                      return <div className="flex" key={j}>
+                          <div className="column miniTopAndBottomMargin">
+                            {prettifyProp(prop)} :
+                          </div>
+                          <div className="column--wide miniTopAndBottomMargin">
+                            {val}
+                          </div>
+                        </div>;
+                    } else {
+                      return null;
+                    }
                   })}
                   <br />
-                </div>
-              );
+                </div>;
             })
           : null}
       </div>

@@ -103,7 +103,8 @@ const fields = {
   DEADLINE: "S",
   PURCHASE_MADE: "T",
   MATERIALS_ORDERED: "U",
-  NOTES: "V"
+  NOTES: "V",
+  id: "W"
 };
 
 const reverseFields = {
@@ -128,7 +129,8 @@ const reverseFields = {
   S: "DEADLINE",
   T: "PURCHASE_MADE",
   U: "MATERIALS_ORDERED",
-  V: "NOTES"
+  V: "NOTES",
+  W: "id"
 };
 
 const letterNumbers = {
@@ -153,7 +155,8 @@ const letterNumbers = {
   S: 18,
   T: 19,
   U: 20,
-  V: 21
+  V: 21,
+  W: 22
 };
 
 const numberFields = {
@@ -178,7 +181,8 @@ const numberFields = {
   18: "DEADLINE",
   19: "PURCHASE_MADE",
   20: "MATERIALS_ORDERED",
-  21: "NOTES"
+  21: "NOTES",
+  22: "id"
 };
 
 const sortOptions = [
@@ -215,6 +219,14 @@ const start = async auth => {
     addNewPlan(auth)(req, res);
   });
 
+  app.post("/api/takeoffComplete", (req, res) => {
+    markItemComplete(auth)("takeoff")(req, res);
+  });
+
+  app.post("/api/quoteComplete", (req, res) => {
+    markItemComplete(auth)("quote")(req, res);
+  });
+
   app.listen(PORT, () => {
     console.log("Now listening on port", PORT);
   });
@@ -242,7 +254,7 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
 
   const range =
     fieldArray.length === 0
-      ? "A5:V"
+      ? "A5:W"
       : `${searchLetters[0]}5:${searchLetters[searchLetters.length - 1]}`;
 
   // SORT FUNCTIONS
@@ -404,4 +416,43 @@ const addNewPlan = auth => (req, res) => {
     }
     return res.json({ message: "data appended successfully" });
   });
+};
+
+const markItemComplete = auth => (conditional = "takeoff") => (req, res) => {
+  let { id } = req.body;
+  id = parseInt(id);
+  const sheets = google.sheets({ version: "v4", auth });
+  const date = new Date();
+  const dateString = date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear();
+
+  const range = conditional === "takeoff" ?
+    `H${id + 4}:I${id + 4}`
+    : `J${id + 4}:K${id + 4}`;
+
+  const appendedArray = [
+    dateString,
+    "Auto"
+  ];
+
+  const request = {
+    spreadsheetId: process.env.SHEETID,
+    range: range,
+    responseDateTimeRenderOption: "FORMATTED_STRING",
+    responseValueRenderOption: "FORMATTED_VALUE",
+    valueInputOption: "USER_ENTERED",
+    auth: auth,
+    resource: {
+      values: [appendedArray],
+      range: range
+    }
+  };
+
+  sheets.spreadsheets.values.update(request, (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.json({err: err});
+    }
+    return res.json({ message: "Updated successfully" });
+  });
+  
 };
