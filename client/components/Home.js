@@ -66,7 +66,7 @@ class Home extends Component {
       activeButton: buttonIndex
     });
     const [field] = option;
-    fetch("/DB", {
+    fetch("/api/DB", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

@@ -59,7 +59,7 @@ class Receiver extends Component {
       dataToAppend.NOTES = notes;
     }
 
-    fetch('/newPlan', {
+    fetch('/api/newPlan', {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

@@ -199,7 +199,7 @@ const start = async auth => {
     res.sendFile(path.join(__dirname, "client/build/", "index.html"));
   });
 
-  app.post("/DB", (req, res) => {
+  app.post("/api/DB", (req, res) => {
     const { fields, sortOption } = req.body;
     /*
       Example:
@@ -211,7 +211,7 @@ const start = async auth => {
     searchByFields(auth)(fields, sortOption)(req, res);
   });
 
-  app.post("/newPlan", (req, res) => {
+  app.post("/api/newPlan", (req, res) => {
     addNewPlan(auth)(req, res);
   });
 
