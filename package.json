@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:build": "concurrently \"nodemon --exec babel-node index\" \"npm run build --prefix client\"",
-    "start": "concurrently \"nodemon --exec babel-node index\" \"npm run build:production --prefix client\"",
-    "postinstall": "cd client && npm i"
+    "start": "nodemon --exec babel-node index",
+    "postinstall": "npm i && cd client && npm i"
   },
   "author": "",
   "license": "ISC",
