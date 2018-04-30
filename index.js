@@ -4,11 +4,12 @@ import path from "path";
 import bodyParser from "body-parser";
 const compression = require("compression");
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 const app = express();
 app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static('client/build/'));
 
 const fs = require("fs");
 const readline = require("readline");
