@@ -70,7 +70,7 @@ class Home extends Component {
       activeButton: buttonIndex
     });
     const [field] = option;
-    fetch("/api/DB", {
+    oboe("/api/DB", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -78,10 +78,11 @@ class Home extends Component {
       body: JSON.stringify({
         fields: [],
         sortOption: [...option]
-      })
+      }),
+      cached: false
     })
       .then(res => {
-        console.log(res);
+        console.log(typeof(res));
         return res.json();
       })
       .then(json => handleJSONResponse(json))

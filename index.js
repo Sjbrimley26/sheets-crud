@@ -3,6 +3,7 @@ const dotenv = require("dotenv").config();
 import path from "path";
 import bodyParser from "body-parser";
 const compression = require("compression");
+const { Readable } = require("stream");
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -332,10 +333,12 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
               return result;
             }, {});
         });
-        let stream = fs.createReadStream(JSON.stringify(sortfn(objectifiedRows)));
-        console.log(stream);
+        let dataStream = new Readable();
+        dataStream._read = () => {};
+        dataStream.push(JSON.stringify(sortfn(objectifiedRows)));
+        dataStream.push(null);
         console.log("Working so far");
-        stream.pipe(res);
+        dataStream.pipe(res);
         //res.json(sortfn(objectifiedRows));
     } else {
       res.json({ err: "No Data Found!" });
