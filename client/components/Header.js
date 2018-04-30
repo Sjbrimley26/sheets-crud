@@ -3,6 +3,11 @@ const { Component } = React;
 import "../assets/styles/header.scss";
 import { withRouter } from "react-router-dom";
 
+const links = [
+  ["/", "Check Plans"],
+  ["/receive", "Receive A Plan"]
+];
+
 class Header extends Component {
   constructor(props) {
     super(props);
@@ -32,8 +37,19 @@ class Header extends Component {
         {
           this.state.menuIsOpen ?
           <div className="navMenu">
-            <button onClick={this.navTo.bind(this, "/")}>Check Plans</button>
-            <button onClick={this.navTo.bind(this, "/receive")}>Receive A Plan</button>
+            {
+              links.map((pair, i) => {
+                const [ url, text ] = pair;
+                return (
+                  <button
+                    onClick={this.navTo.bind(this, url)}
+                    key={i}
+                  >
+                    {text}
+                  </button>
+                );
+              })
+            }
           </div>
           : null
         }

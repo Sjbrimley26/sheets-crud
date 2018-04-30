@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:build": "concurrently \"nodemon --exec babel-node index\" \"npm run build --prefix client\"",
     "start": "nodemon --exec babel-node index",
-    "heroku-postbuild": "npm i --only=dev && cd client && npm i && npm i --only=dev && npm run build:production"
+    "start:production": "concurrently \"nodemon --exec babel-node index\" \"npm run build:production --prefix client\""
   },
   "author": "",
   "license": "ISC",

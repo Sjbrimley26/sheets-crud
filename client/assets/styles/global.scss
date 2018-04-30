@@ -111,6 +111,10 @@ html {
   margin-right: 10px;
 }
 
+.bigLeftMargin {
+  margin-left: 25px;
+}
+
 .bigRightMargin {
   margin-right: 25px;
 }
@@ -127,6 +131,10 @@ html {
   font-family: $bitter;
   min-width: 490px;
   transition: all 0.4s;
+
+  @media(min-width: 640px) {
+    margin-left: 25px;
+  }
 }
 
 .selector {
