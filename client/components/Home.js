@@ -8,7 +8,9 @@ const sortOptions = [
   "ALL_BY_RECEIVED",
   "CUSTOMER",
   "COMPANY",
-  "JOB"
+  "JOB",
+  "QUOTE_UNCHECKED",
+  "QUOTE_UNSENT"
 ];
 
 const prettifyProp = name => {
@@ -200,6 +202,20 @@ class Home extends Component {
             className={getClassName("column selector", 5)}
           >
             Search by Job Name
+          </button>
+        </div>
+        <div className="options options2 flex topAndBottomMargin justifyCenter">
+          <button
+            onClick={this.getFields.bind(this, [sortOptions[6]], 6)}
+            className={getClassName("column selector", 6)}
+          >
+            Unchecked Quotes
+          </button>
+          <button
+            onClick={this.getFields.bind(this, [sortOptions[7]], 7)}
+            className={getClassName("column selector", 7)}
+          >
+            Unsent Quotes
           </button>
         </div>
         {this.state.searchBarOpen ? (

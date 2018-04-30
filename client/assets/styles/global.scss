@@ -42,6 +42,10 @@ html {
   justify-content: space-between;
 }
 
+.justifyCenter {
+  justify-content: center;
+}
+
 .blueBackground {
   background: $normalBlue;
 }
@@ -145,11 +149,27 @@ html {
   color: white;
   border: 1px solid #4baced;
   border-right: 1px solid #124668;
+  border-bottom: 1px solid #124668;
   font-weight: 700;
+
+  @media(min-width: 920px) {
+    border-radius: 5px;
+  }
 }
 
 .options {
   margin-bottom: 10px;
+}
+
+.options2 {
+
+  button {
+    margin-right: 20px;
+  }
+  
+  @media(min-width: 640px) {
+    margin: 10px auto 10px auto;
+  }
 }
 
 .active {

@@ -191,7 +191,9 @@ const sortOptions = [
   "QUOTE_INCOMPLETE",
   "ALL_BY_RECEIVED",
   "CUSTOMER",
-  "COMPANY"
+  "COMPANY",
+  "QUOTE_UNCHECKED",
+  "QUOTE_UNSENT"
 ];
 
 // e.g. "CUSTOMER", "John Landry"
@@ -359,6 +361,12 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
       break;
     case "JOB":
       sortFunction = filterByFieldName("JOB_NAME")(sortOption[1]);
+      break;
+    case "QUOTE_UNCHECKED":
+      sortFunction = uncompletedSortByName("QUOTE_CHECKED");
+      break;
+    case "QUOTE_UNSENT":
+      sortFunction = uncompletedSortByName("QUOTE_SENT");
       break;
   }
 
