@@ -98,6 +98,7 @@ class Home extends Component {
             loadingResults: false
           });
         } else if (typeof json === "object" && json.id === undefined) {
+          // When I pipe it, it sends an empty object at the end.
           return this.setState({
             loadingResults: false
           });
@@ -106,8 +107,6 @@ class Home extends Component {
       .fail(err => {
         console.log("Error retrieving data", err);
       });
-
-      
 
       /*
     
