@@ -338,11 +338,11 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
             }, {});
         });
         
-        sortfn(objectifiedRows).forEach(row => dataStream.push(JSON.stringify(row)));
+        //sortfn(objectifiedRows).forEach(row => dataStream.push(JSON.stringify(row)));
         //dataStream.push(JSON.stringify(sortfn(objectifiedRows)));
-        dataStream.push(null);
-        dataStream.pipe(res);
-        //res.json(sortfn(objectifiedRows));
+        //dataStream.push(null);
+        //dataStream.pipe(res);
+        res.json(sortfn(objectifiedRows));
 
     } else {
       res.json({ err: "No Data Found!" });

@@ -16,7 +16,7 @@ $darker: #134e76;
   margin-right: 10px;
   border: 1px solid #abcadf;
   border-radius: 8px;
-  transition: all 0.4s;
+  transition: all 0.2s;
   
   &:active,
   &:focus {
@@ -24,7 +24,7 @@ $darker: #134e76;
   }
 
   &:hover {
-    box-shadow: 0 0 20px rgba(93, 131, 202, 0.5);
+    box-shadow: 0 0 30px rgba(93, 131, 202, 0.7);
   }
 }
 
