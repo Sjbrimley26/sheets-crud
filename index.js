@@ -333,11 +333,11 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
               return result;
             }, {});
         });
+
         let dataStream = new Readable();
         dataStream._read = () => {};
         dataStream.push(JSON.stringify(sortfn(objectifiedRows)));
         dataStream.push(null);
-        console.log("Working so far");
         dataStream.pipe(res);
         //res.json(sortfn(objectifiedRows));
     } else {
@@ -434,7 +434,7 @@ const addNewPlan = auth => (req, res) => {
 };
 
 const markItemComplete = auth => (conditional = "takeoff") => (req, res) => {
-  let { id } = req.body;
+  let { id, name } = req.body;
   id = parseInt(id);
   const sheets = google.sheets({ version: "v4", auth });
   const date = new Date();
@@ -442,11 +442,13 @@ const markItemComplete = auth => (conditional = "takeoff") => (req, res) => {
 
   const range = conditional === "takeoff" ?
     `H${id + 4}:I${id + 4}`
-    : `J${id + 4}:K${id + 4}`;
+    : conditional === "quote" ?
+    `J${id + 4}:K${id + 4}`
+    : "";
 
   const appendedArray = [
     dateString,
-    "Auto"
+    name
   ];
 
   const request = {

@@ -201,6 +201,43 @@ html {
   }
 }
 
+.popupDiv {
+  height: 100px;
+  min-width: 300px;
+  display: block;
+  color: #124668;
+
+  span {
+    display: block;
+    margin-top: 30px;
+  }
+
+  input {
+    margin: 10px 0 0 10px;
+    display: inline-block;
+  }
+
+  button {
+    height: 30px;
+    width: 30px;
+    background: #124668;
+    border: 1px hidden;
+    border-radius: 15%;
+    margin-top: 10px;
+    transition: all 0.5s;
+
+    &:hover {
+      background: #226f7c;
+    }
+  }
+
+  div {
+    display: flex;
+    justify-content: space-around;
+    align-content: center;
+  }
+}
+
 .loader {
   font-size: 10px;
   margin: 50px auto;

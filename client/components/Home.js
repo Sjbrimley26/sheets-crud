@@ -2,6 +2,7 @@ import * as React from "react";
 const { Component } = React;
 import "../assets/styles/global.scss";
 import oboe from "oboe";
+import Popup from "reactjs-popup";
 
 const sortOptions = [
   "TAKEOFF_INCOMPLETE",
@@ -42,9 +43,7 @@ class Home extends Component {
     this.searchRef = React.createRef();
 
     this.openSearchBar = this.openSearchBar.bind(this);
-    this.handleInputChange = this.handleInputChange.bind(this);
     this.handleSearch = this.handleSearch.bind(this);
-    this.handleEnter = this.handleEnter.bind(this);
     this.markQuoteComplete = this.markQuoteComplete.bind(this);
     this.markTakeoffComplete = this.markTakeoffComplete.bind(this);
 
@@ -55,7 +54,12 @@ class Home extends Component {
       searchBarOpen: false,
       selectedButton: "",
       activeButton: 1,
-      searchValue: ""
+      searchValue: "",
+      takeoffPopupOpen: false,
+      quotePopupOpen: false,
+      takeoffName: "",
+      quoteName: "",
+      selectedPlan: null,
     };
   }
 
@@ -71,7 +75,8 @@ class Home extends Component {
       activeButton: buttonIndex
     });
     const [field] = option;
-    oboe("/api/DB", {
+    oboe({
+      url: "/api/DB",
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -82,12 +87,22 @@ class Home extends Component {
       }),
       cached: false
     })
-    .on('node', '{}', (json) => {
-      return console.log("JSON", json);
-    })
-    .done((data) => {
-      console.log(data);
-    })
+      .on("node", "{}", json => {
+        if (typeof json === "object") {
+          return this.setState({
+            searchResults: this.state.searchResults.concat(json),
+            loadingResults: false
+          });
+        }
+      })
+      .done(data => {
+        return this.setState({
+          searchResults: data
+        });
+      })
+      .fail(err => {
+        console.log("Error retrieving data", err);
+      });
 
     /*
       .then(res => {
@@ -112,13 +127,31 @@ class Home extends Component {
     };
   }
 
-  handleInputChange(e) {
-    this.setState({ searchValue: e.target.value });
+  handleInputChange(key, e) {
+    let returnObj = {};
+    returnObj[key] = e.target.value;
+    this.setState(returnObj);
   }
 
-  handleEnter(e) {
+  handleEnter(option = "search", e) {
+    let fn;
+    switch(option) {
+      case "search":
+        fn = this.handleSearch;
+        break;
+      case "takeoff":
+        fn = this.takeoffCompleteFetch.bind(this, this.state.selectedPlan, this.state.takeoffName);
+        break;
+      case "quote":
+        fn = this.quoteCompleteFetch.bind(this, this.state.selectedPlan, this.state.quoteName);
+        break;
+    }
     if (e.key === "Enter") {
-      this.handleSearch();
+      fn();
+      this.setState({ 
+        quotePopupOpen: false,
+        takeoffPopupOpen: false
+      });
     }
   }
 
@@ -138,36 +171,54 @@ class Home extends Component {
     this.searchRef.current.value = "";
   }
 
-  markTakeoffComplete(e) {
-    fetch("/api/takeoffComplete", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        id: e.target.value
-      })
-    })
-    .catch(err => alert("Error completing take-off", err))
-    .finally(() => this.getFields.call(this, ["TAKEOFF_INCOMPLETE"], 1))
+  togglePopup(option = "takeoff", id) {
+    let stateObj = {};
+    stateObj[option + "PopupOpen"] = true;
+    stateObj.selectedPlan = id;
+    return this.setState(stateObj);
   }
 
-  markQuoteComplete(e) {
+  markTakeoffComplete() {
+    this.takeoffCompleteFetch.call(this, this.state.selectedPlan, this.state.takeoffName);
+    return this.setState({ takeoffPopupOpen: false });
+  }
+
+  markQuoteComplete() {
+    this.quoteCompleteFetch.call(this, this.state.selectedPlan, this.state.quoteName);
+    return this.setState({ quotePopupOpen: false });
+  }
+
+  quoteCompleteFetch(id, name) {
     fetch("/api/quoteComplete", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        id: e.target.value
+        id: id,
+        name: name
       })
     })
-    .catch(err => alert("Error completing quote", err))
-    .finally(() => this.getFields.call(this, ["QUOTE_INCOMPLETE"], 2));
+      .catch(err => alert("Error completing quote", err))
+      .finally(() => this.getFields.call(this, ["QUOTE_INCOMPLETE"], 2));
+  }
+
+  takeoffCompleteFetch(id, name) {
+    fetch("/api/takeoffComplete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id: id,
+        name: name
+      })
+    })
+      .catch(err => alert("Error completing take-off", err))
+      .finally(() => this.getFields.call(this, ["TAKEOFF_INCOMPLETE"], 1));
   }
 
   render() {
-
     let { activeButton } = this.state;
 
     const getClassName = (name, index) => {
@@ -236,8 +287,8 @@ class Home extends Component {
           <div>
             <input
               ref={this.searchRef}
-              onKeyPress={this.handleEnter}
-              onChange={this.handleInputChange}
+              onKeyPress={this.handleEnter.bind(this)}
+              onChange={this.handleInputChange.bind(this, "searchValue")}
               className="searchBar"
               type="text"
             />
@@ -255,23 +306,14 @@ class Home extends Component {
         {this.state.searchResults.length > 0
           ? this.state.searchResults.map((result, i) => {
               return <div className="resultDiv" key={i}>
-                { 
-                  (!result.TAKE_OFF_MADE || !result.QUOTE_MADE) ? 
-                  <div className="flex--column floatRight rightMargin">
-                    {
-                      !result.TAKE_OFF_MADE ?
-                        <button value={result.id} onClick={this.markTakeoffComplete} className="statusButton topAndBottomMargin">
+                  {!result.TAKE_OFF_MADE || !result.QUOTE_MADE ? <div className="flex--column floatRight rightMargin">
+                      {!result.TAKE_OFF_MADE ? <button value={result.id} onClick={this.togglePopup.bind(this, "takeoff", result.id)} className="statusButton topAndBottomMargin">
                           Take-off Completed
-                        </button> : null
-                    }
-                    {
-                      !result.QUOTE_MADE ?
-                        <button value={result.id} onClick={this.markQuoteComplete} className="statusButton">
+                        </button> : null}
+                      {!result.QUOTE_MADE ? <button value={result.id} onClick={this.togglePopup.bind(this, "quote", result.id)} className="statusButton">
                           Quote Completed
-                        </button> : null
-                    }
-                  </div> : null
-                }
+                        </button> : null}
+                    </div> : null}
                   {Object.entries(result).map((pair, j) => {
                     let [prop, val] = pair;
                     if (prop !== "id") {
@@ -287,6 +329,24 @@ class Home extends Component {
                       return null;
                     }
                   })}
+                  {<Popup open={this.state.takeoffPopupOpen} modal closeOnDocumentClick>
+                      <div className="popupDiv">
+                        <span> Who completed it? </span>
+                        <div>
+                          <input onKeyPress={this.handleEnter.bind(this, "takeoff")} onChange={this.handleInputChange.bind(this, "takeoffName")} type="text" value={this.state.takeoffName} />
+                          <button onClick={this.markTakeoffComplete} />
+                        </div>
+                      </div>
+                    </Popup>}
+                  {<Popup open={this.state.quotePopupOpen} modal closeOnDocumentClick>
+                      <div className="popupDiv">
+                        <span> Who completed it? </span>
+                        <div>
+                          <input onKeyPress={this.handleEnter.bind(this, "quote")} onChange={this.handleInputChange.bind(this, "quoteName")} type="text" value={this.state.quoteName} />
+                          <button onClick={this.markQuoteComplete} />
+                        </div>
+                      </div>
+                    </Popup>}
                   <br />
                 </div>;
             })
