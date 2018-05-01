@@ -302,6 +302,10 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
     if (error) return res.json({ err: `The API returned an error ${error}` });
     const { data } = response;
     const rows = data.values;
+
+    let dataStream = new Readable();
+    dataStream._read = () => {};
+
     if (rows.length) {
       let objectifiedRows = rows
         .reduce((result, row) => {
@@ -333,13 +337,13 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
               return result;
             }, {});
         });
-
-        let dataStream = new Readable();
-        dataStream._read = () => {};
-        dataStream.push(JSON.stringify(sortfn(objectifiedRows)));
+        
+        sortfn(objectifiedRows).forEach(row => dataStream.push(JSON.stringify(row)));
+        //dataStream.push(JSON.stringify(sortfn(objectifiedRows)));
         dataStream.push(null);
         dataStream.pipe(res);
         //res.json(sortfn(objectifiedRows));
+
     } else {
       res.json({ err: "No Data Found!" });
     }

@@ -151,6 +151,11 @@ html {
   border-right: 1px solid #124668;
   border-bottom: 1px solid #124668;
   font-weight: 700;
+  transition: all 0.3s;
+
+  &:hover {
+    background: #8ac5ed;
+  }
 
   @media(min-width: 920px) {
     border-radius: 5px;
@@ -174,6 +179,10 @@ html {
 
 .active {
   background: #124668;
+
+  &:hover {
+    background: #124668;
+  }
 }
 
 .searchBar {
@@ -194,6 +203,7 @@ html {
   border-radius: 12px;
   box-shadow: 0 0 12px #124668;
   font-family: $bitter;
+  transition: all 0.4s;
 
   &:hover {
     background: #124668;
@@ -210,6 +220,7 @@ html {
   span {
     display: block;
     margin-top: 30px;
+    text-shadow: none;
   }
 
   input {
@@ -218,16 +229,42 @@ html {
   }
 
   button {
-    height: 30px;
-    width: 30px;
+    color: white;
     background: #124668;
     border: 1px hidden;
     border-radius: 15%;
     margin-top: 10px;
     transition: all 0.5s;
+    padding: 10px;
+    font-size: 1.1em;
 
     &:hover {
-      background: #226f7c;
+      background: #63c1d1;
+    }
+  }
+  
+  .closeButton {
+    position: absolute;
+    top: -27px;
+    height: 40px;
+    width: 40px;
+    right: -20px;
+    background: rgba(0, 110 , 152, 1);
+    color: white;
+    border-radius: 50%;
+    font-weight: 900;
+    font-size: 1.1em;
+    transition: all 0.4s;
+    padding: 0px;
+
+    &:active, &:focus {
+      outline: none;
+    }
+
+    &:hover {
+      color: rgba(0, 110 , 152, 1);
+      background: white;
+      border: 1px solid rgba(0, 110 , 152, 1);
     }
   }
 
@@ -236,6 +273,17 @@ html {
     justify-content: space-around;
     align-content: center;
   }
+}
+
+.closeButton {
+  position: absolute;
+  top: -10px;
+  height: 20px;
+  width: 20px;
+  right: -10px;
+  background: rgba(0,0,100,0.8);
+  color: white;
+  border-radius: 50%;
 }
 
 .loader {

@@ -46,6 +46,7 @@ class Home extends Component {
     this.handleSearch = this.handleSearch.bind(this);
     this.markQuoteComplete = this.markQuoteComplete.bind(this);
     this.markTakeoffComplete = this.markTakeoffComplete.bind(this);
+    this.closePopups = this.closePopups.bind(this);
 
     this.state = {
       loadingResults: true,
@@ -75,6 +76,8 @@ class Home extends Component {
       activeButton: buttonIndex
     });
     const [field] = option;
+
+    
     oboe({
       url: "/api/DB",
       method: "POST",
@@ -88,23 +91,36 @@ class Home extends Component {
       cached: false
     })
       .on("node", "{}", json => {
-        if (typeof json === "object") {
+        if (typeof json === "object" && json.id !== undefined) {
+          //console.log(json);
           return this.setState({
             searchResults: this.state.searchResults.concat(json),
             loadingResults: false
           });
+        } else if (typeof json === "object" && json.id === undefined) {
+          return this.setState({
+            loadingResults: false
+          });
         }
-      })
-      .done(data => {
-        return this.setState({
-          searchResults: data
-        });
       })
       .fail(err => {
         console.log("Error retrieving data", err);
       });
 
-    /*
+      
+
+      /*
+    
+      fetch("/api/DB", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        fields: [],
+        sortOption: [...option]
+      })
+    })
       .then(res => {
         console.log(typeof(res));
         return res.json();
@@ -118,7 +134,9 @@ class Home extends Component {
         })
       )
       .catch(err => alert("There was an error fetching the data!", err));
-    */
+
+      */
+    
   }
 
   openSearchBar(index) {
@@ -178,6 +196,13 @@ class Home extends Component {
     return this.setState(stateObj);
   }
 
+  closePopups() {
+    return this.setState({
+      takeoffPopupOpen: false,
+      quotePopupOpen: false
+    });
+  }
+
   markTakeoffComplete() {
     this.takeoffCompleteFetch.call(this, this.state.selectedPlan, this.state.takeoffName);
     return this.setState({ takeoffPopupOpen: false });
@@ -219,6 +244,7 @@ class Home extends Component {
   }
 
   render() {
+
     let { activeButton } = this.state;
 
     const getClassName = (name, index) => {
@@ -329,21 +355,23 @@ class Home extends Component {
                       return null;
                     }
                   })}
-                  {<Popup open={this.state.takeoffPopupOpen} modal closeOnDocumentClick>
+                  {<Popup open={this.state.takeoffPopupOpen} modal>
                       <div className="popupDiv">
                         <span> Who completed it? </span>
                         <div>
                           <input onKeyPress={this.handleEnter.bind(this, "takeoff")} onChange={this.handleInputChange.bind(this, "takeoffName")} type="text" value={this.state.takeoffName} />
-                          <button onClick={this.markTakeoffComplete} />
+                          <button onClick={this.markTakeoffComplete}>Submit</button>
+                          <button className="closeButton" onClick={this.closePopups}>X</button>
                         </div>
                       </div>
                     </Popup>}
-                  {<Popup open={this.state.quotePopupOpen} modal closeOnDocumentClick>
+                  {<Popup open={this.state.quotePopupOpen} modal>
                       <div className="popupDiv">
                         <span> Who completed it? </span>
                         <div>
                           <input onKeyPress={this.handleEnter.bind(this, "quote")} onChange={this.handleInputChange.bind(this, "quoteName")} type="text" value={this.state.quoteName} />
-                          <button onClick={this.markQuoteComplete} />
+                          <button onClick={this.markQuoteComplete}>Submit</button>
+                          <button className="closeButton" onClick={this.closePopups}>X</button>
                         </div>
                       </div>
                     </Popup>}
