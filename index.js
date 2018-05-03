@@ -105,7 +105,8 @@ const fields = {
   PURCHASE_MADE: "T",
   MATERIALS_ORDERED: "U",
   NOTES: "V",
-  id: "W"
+  id: "W",
+  QUOTE_NUMBER: "X",
 };
 
 const reverseFields = {
@@ -131,7 +132,8 @@ const reverseFields = {
   T: "PURCHASE_MADE",
   U: "MATERIALS_ORDERED",
   V: "NOTES",
-  W: "id"
+  W: "id",
+  X: "QUOTE_NUMBER"
 };
 
 const letterNumbers = {
@@ -157,7 +159,8 @@ const letterNumbers = {
   T: 19,
   U: 20,
   V: 21,
-  W: 22
+  W: 22,
+  X: 23,
 };
 
 const numberFields = {
@@ -183,7 +186,8 @@ const numberFields = {
   19: "PURCHASE_MADE",
   20: "MATERIALS_ORDERED",
   21: "NOTES",
-  22: "id"
+  22: "id",
+  23: "QUOTE_NUMBER",
 };
 
 const sortOptions = [
@@ -194,7 +198,8 @@ const sortOptions = [
   "CUSTOMER",
   "COMPANY",
   "QUOTE_UNCHECKED",
-  "QUOTE_UNSENT"
+  "QUOTE_UNSENT",
+  "QUOTE_NUMBER"
 ];
 
 // e.g. "CUSTOMER", "John Landry"
@@ -257,7 +262,7 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
 
   const range =
     fieldArray.length === 0
-      ? "A5:W"
+      ? "A5:X"
       : `${searchLetters[0]}5:${searchLetters[searchLetters.length - 1]}`;
 
   // SORT FUNCTIONS
@@ -337,7 +342,6 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
               return result;
             }, {});
         });
-        
         //sortfn(objectifiedRows).forEach(row => dataStream.push(JSON.stringify(row)));
         //dataStream.push(JSON.stringify(sortfn(objectifiedRows)));
         //dataStream.push(null);
@@ -378,6 +382,9 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
       break;
     case "QUOTE_UNSENT":
       sortFunction = uncompletedSortByName("QUOTE_SENT");
+      break;
+    case "QUOTE_NUMBER":
+      sortFunction = filterByFieldName("QUOTE_NUMBER")(sortOption[1]);
       break;
   }
 
@@ -438,22 +445,29 @@ const addNewPlan = auth => (req, res) => {
 };
 
 const markItemComplete = auth => (conditional = "takeoff") => (req, res) => {
-  let { id, name } = req.body;
+  let { id, name, number } = req.body;
   id = parseInt(id);
   const sheets = google.sheets({ version: "v4", auth });
   const date = new Date();
   const dateString = date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear();
 
-  const range = conditional === "takeoff" ?
+  let range = conditional === "takeoff" ?
     `H${id + 4}:I${id + 4}`
     : conditional === "quote" ?
     `J${id + 4}:K${id + 4}`
     : "";
 
-  const appendedArray = [
-    dateString,
-    name
-  ];
+    let appendedArray = [
+      dateString,
+      name
+    ];
+  
+    if (conditional === "quote" && number) {
+      range = `J${id + 4}:X${id + 4}`;
+      appendedArray.push((Array(12).fill(null))).push(number);
+    }
+
+  
 
   const request = {
     spreadsheetId: process.env.SHEETID,

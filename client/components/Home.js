@@ -12,7 +12,8 @@ const sortOptions = [
   "COMPANY",
   "JOB",
   "QUOTE_UNCHECKED",
-  "QUOTE_UNSENT"
+  "QUOTE_UNSENT",
+  "QUOTE_NUMBER"
 ];
 
 const prettifyProp = name => {
@@ -61,6 +62,7 @@ class Home extends Component {
       takeoffName: "",
       quoteName: "",
       selectedPlan: null,
+      quoteNumber: "",
     };
   }
 
@@ -157,18 +159,14 @@ class Home extends Component {
         fn = this.handleSearch;
         break;
       case "takeoff":
-        fn = this.takeoffCompleteFetch.bind(this, this.state.selectedPlan, this.state.takeoffName);
+        fn = this.markTakeoffComplete.bind(this);
         break;
       case "quote":
-        fn = this.quoteCompleteFetch.bind(this, this.state.selectedPlan, this.state.quoteName);
+        fn = this.markQuoteComplete.bind(this);
         break;
     }
     if (e.key === "Enter") {
       fn();
-      this.setState({ 
-        quotePopupOpen: false,
-        takeoffPopupOpen: false
-      });
     }
   }
 
@@ -182,6 +180,9 @@ class Home extends Component {
         break;
       case 5:
         this.getFields.call(this, [sortOptions[5], this.state.searchValue], 5);
+        break;
+      case 8:
+        this.getFields.call(this, [sortOptions[8], this.state.searchValue], 8);
         break;
     }
     this.setState({ searchValue: "" });
@@ -208,20 +209,24 @@ class Home extends Component {
   }
 
   markQuoteComplete() {
-    this.quoteCompleteFetch.call(this, this.state.selectedPlan, this.state.quoteName);
+    this.quoteCompleteFetch.call(this, this.state.selectedPlan, this.state.quoteName, this.state.quoteNumber);
     return this.setState({ quotePopupOpen: false });
   }
 
-  quoteCompleteFetch(id, name) {
+  quoteCompleteFetch(id, name, number = "") {
+    let reqBody = {
+      id: id,
+      name: name
+    };
+    if (number) {
+      reqBody.number = number;
+    }
     fetch("/api/quoteComplete", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        id: id,
-        name: name
-      })
+      body: JSON.stringify(reqBody)
     })
       .catch(err => alert("Error completing quote", err))
       .finally(() => this.getFields.call(this, ["QUOTE_INCOMPLETE"], 2));
@@ -307,12 +312,18 @@ class Home extends Component {
           >
             Unsent Quotes
           </button>
+          <button
+            onClick={this.openSearchBar(8)}
+            className={getClassName("column selector", 8)}
+          >
+            Search by Quote Number
+          </button>
         </div>
         {this.state.searchBarOpen ? (
           <div>
             <input
               ref={this.searchRef}
-              onKeyPress={this.handleEnter.bind(this)}
+              onKeyPress={this.handleEnter.bind(this, "search")}
               onChange={this.handleInputChange.bind(this, "searchValue")}
               className="searchBar"
               type="text"
@@ -369,6 +380,7 @@ class Home extends Component {
                         <span> Who completed it? </span>
                         <div>
                           <input onKeyPress={this.handleEnter.bind(this, "quote")} onChange={this.handleInputChange.bind(this, "quoteName")} type="text" value={this.state.quoteName} />
+                          <input onKeyPress={this.handleEnter.bind(this, "quote")} onChange={this.handleInputChange.bind(this, "quoteNumber")} type="text" value={this.state.quoteNumber} />
                           <button onClick={this.markQuoteComplete}>Submit</button>
                           <button className="closeButton" onClick={this.closePopups}>X</button>
                         </div>
