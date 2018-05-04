@@ -464,7 +464,7 @@ const markItemComplete = auth => (conditional = "takeoff") => (req, res) => {
   
     if (conditional === "quote" && number) {
       range = `J${id + 4}:X${id + 4}`;
-      appendedArray.push((Array(12).fill(null))).push(number);
+      appendedArray = appendedArray.concat((Array(12).fill(null))).concat(number);
     }
 
   

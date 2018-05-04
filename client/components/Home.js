@@ -380,6 +380,7 @@ class Home extends Component {
                         <span> Who completed it? </span>
                         <div>
                           <input onKeyPress={this.handleEnter.bind(this, "quote")} onChange={this.handleInputChange.bind(this, "quoteName")} type="text" value={this.state.quoteName} />
+                          <span> Quote Number : </span>
                           <input onKeyPress={this.handleEnter.bind(this, "quote")} onChange={this.handleInputChange.bind(this, "quoteNumber")} type="text" value={this.state.quoteNumber} />
                           <button onClick={this.markQuoteComplete}>Submit</button>
                           <button className="closeButton" onClick={this.closePopups}>X</button>
