@@ -31,8 +31,8 @@ class Header extends Component {
   render() {
     return (
       <div className="header">
-        <button onClick={this.handleMenuClick} className="hamburger">
-          <img height="25px" width="25px" src="https://cdn0.iconfinder.com/data/icons/social-messaging-productivity-4/128/menu-2-512.png" />
+        <button onClick={this.handleMenuClick} name="navigation menu" className="hamburger">
+          <img height="25px" width="25px" alt="Navigate!" src="https://cdn0.iconfinder.com/data/icons/social-messaging-productivity-4/128/menu-2-512.png" />
         </button>
         {
           this.state.menuIsOpen ?

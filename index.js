@@ -308,8 +308,8 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
     const { data } = response;
     const rows = data.values;
 
-    let dataStream = new Readable();
-    dataStream._read = () => {};
+    //let dataStream = new Readable();
+    //dataStream._read = () => {};
 
     if (rows.length) {
       let objectifiedRows = rows
@@ -342,6 +342,7 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
               return result;
             }, {});
         });
+
         //sortfn(objectifiedRows).forEach(row => dataStream.push(JSON.stringify(row)));
         //dataStream.push(JSON.stringify(sortfn(objectifiedRows)));
         //dataStream.push(null);
@@ -464,7 +465,9 @@ const markItemComplete = auth => (conditional = "takeoff") => (req, res) => {
   
     if (conditional === "quote" && number) {
       range = `J${id + 4}:X${id + 4}`;
-      appendedArray = appendedArray.concat((Array(12).fill(null))).concat(number);
+      appendedArray = appendedArray
+        .concat((Array(12).fill(null)))
+        .concat(number);
     }
 
   

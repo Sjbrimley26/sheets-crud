@@ -33,9 +33,12 @@
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
+    "copy-webpack-plugin": "^4.5.1",
     "node-sass": "^4.8.3",
     "nodemon": "^1.17.3",
-    "webpack-bundle-analyzer": "^2.11.1"
+    "sw-precache-webpack-plugin": "^0.11.5",
+    "webpack-bundle-analyzer": "^2.11.1",
+    "webpack-manifest-plugin": "^2.0.2"
   },
   "engines": {
     "node": "8.9.4"
