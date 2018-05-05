@@ -36,5 +36,9 @@
 
 .planInput {
     max-width: 700px;
-    margin-left: 20%;
+    margin-left: 20px;
+    
+    @media(min-width:480px) {
+        margin-left: 20%;
+    }
 }

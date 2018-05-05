@@ -120,7 +120,7 @@ class Receiver extends Component {
         {[...fields].map((item, i) => {
           const [field, value] = item;
           return (
-            <div key={i} className="column flex width80">
+            <div key={i} className="column wrap flex width80">
               <label className="column topAndBottomPadding">{field}</label>
               <div className="column--wide blueBackground flex">
                 <input

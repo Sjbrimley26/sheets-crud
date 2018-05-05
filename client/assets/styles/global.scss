@@ -9,7 +9,6 @@ html {
   color: white;
   margin: 0;
   padding: 0;
-  min-width: 550px;
   z-index: -100;
 }
 
@@ -35,7 +34,6 @@ html {
   width: 80%;
   margin-left: 5px;
   transition: all 0.4s;
-  min-width: 320px;
 }
 
 .spaceBetween {
@@ -65,13 +63,12 @@ html {
     text-shadow: 1px 2px #164d72;
     border-bottom: 1px solid #164d72;
     border-radius: 0 0 0 16px;
-    max-width: 200px;
 
     &:before{
       content: "";
       position: absolute;
       width: 20px;
-      height: 60px;
+      height: 80px;
       background: $normalBlue;
       margin-right: 32px;
       left: 5px;
@@ -133,17 +130,15 @@ html {
   border-radius: 0 0 35px 0;
   text-shadow: -1.1px 1.2px black;
   font-family: $bitter;
-  min-width: 490px;
   transition: all 0.4s;
 
-  @media(min-width: 640px) {
+  @media(min-width: 800px) {
     margin-left: 25px;
   }
 }
 
 .selector {
   max-width: 120px;
-  min-width: 90px;
   padding: 10px 5px 10px 5px;
   background: #4baced;
   color: black;
@@ -152,18 +147,22 @@ html {
   border-bottom: 1px solid #124668;
   font-weight: 700;
   transition: all 0.3s;
+  border-radius: 10%;
+  margin: 0 10px 10px 0;
 
   &:hover {
     background: #8ac5ed;
   }
 
-  @media(min-width: 920px) {
-    border-radius: 5px;
-  }
+}
+
+.wrap {
+  flex-wrap: wrap;
 }
 
 .options {
   margin-bottom: 10px;
+  flex-wrap: wrap;
 }
 
 .options2 {
