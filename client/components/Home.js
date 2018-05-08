@@ -247,6 +247,21 @@ class Home extends Component {
       .finally(() => this.getFields.call(this, ["TAKEOFF_INCOMPLETE"], 1));
   }
 
+  downloadPlan(title) {
+    console.log(title, " sent!");
+    fetch("/api/getPlan", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/download",
+        "Content-Disposition": "attachment"
+      },
+      body: JSON.stringify({
+        title: title
+      })
+    })
+      .catch(err => console.log(err));
+  }
+
   render() {
 
     let { activeButton } = this.state;
@@ -352,7 +367,7 @@ class Home extends Component {
                     </div> : null}
                   {Object.entries(result).map((pair, j) => {
                     let [prop, val] = pair;
-                    if (prop !== "id") {
+                    if (!["id", "Plans_Uploaded"].includes(prop)) {
                       return <div className="flex" key={j}>
                           <div className="column miniTopAndBottomMargin">
                             {prettifyProp(prop)} :
@@ -362,7 +377,24 @@ class Home extends Component {
                           </div>
                         </div>;
                     } else {
-                      return null;
+                      if (prop === "id") {
+                        return null;
+                      }
+                      if (prop === "Plans_Uploaded") {
+                        console.log(val);
+                        return (
+                          <div className="flex" key={j}>
+                            <div className="column miniTopAndBottomMargin">
+                              Look at Plans
+                            </div>
+                            <div className="column--wide miniTopAndBottomMargin">
+                              <button onClick={this.downloadPlan.bind(this, val)}>
+                                Download
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      }
                     }
                   })}
                   {<Popup open={this.state.takeoffPopupOpen} modal>

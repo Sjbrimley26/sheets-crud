@@ -4,10 +4,16 @@ import path from "path";
 import bodyParser from "body-parser";
 const compression = require("compression");
 const { Readable } = require("stream");
+import fileUpload from "express-fileupload";
 
 const PORT = process.env.PORT || 3000;
 const app = express();
 app.use(compression());
+app.use(fileUpload({
+  safeFileNames: true,
+  preserveExtension: 4,
+  abortOnLimit: true
+}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('client/build/'));
@@ -107,6 +113,7 @@ const fields = {
   NOTES: "V",
   id: "W",
   QUOTE_NUMBER: "X",
+  Plans_Uploaded: "Y"
 };
 
 const reverseFields = {
@@ -133,7 +140,8 @@ const reverseFields = {
   U: "MATERIALS_ORDERED",
   V: "NOTES",
   W: "id",
-  X: "QUOTE_NUMBER"
+  X: "QUOTE_NUMBER",
+  Y: "Plans_Uploaded"
 };
 
 const letterNumbers = {
@@ -161,6 +169,7 @@ const letterNumbers = {
   V: 21,
   W: 22,
   X: 23,
+  Y: 24,
 };
 
 const numberFields = {
@@ -188,6 +197,7 @@ const numberFields = {
   21: "NOTES",
   22: "id",
   23: "QUOTE_NUMBER",
+  24: "Plans_Uploaded"
 };
 
 const sortOptions = [
@@ -235,6 +245,35 @@ const start = async auth => {
     markItemComplete(auth)("quote")(req, res);
   });
 
+  app.post("/api/uploadPlan", (req, res) => {
+    let { title } = req.body;
+    const { file } = req.files;
+    let periodI = file.name.lastIndexOf(".");
+    title += file.name.substring(periodI);
+    
+    file.mv(path.resolve(`./plans/${title}`))
+      .then(() => {
+        console.log("File uploaded!");
+        res.send({ title: title });
+      })
+      .catch(err => {
+        console.log("Error uploading file", err);
+        res.status(500).send({ err: err });
+      });
+  });
+
+  app.post("/api/getPlan", (req, res) => {
+    console.log(req.body);
+    const { title } = req.body;
+    const file = path.resolve(`./plans/${title}`);
+    console.log(file);
+    res.download(file, (err) => {
+      if (err) {
+        console.log("Error downloading plan", err);
+      }
+    });
+  })
+
   app.listen(PORT, () => {
     console.log("Now listening on port", PORT);
   });
@@ -262,7 +301,7 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
 
   const range =
     fieldArray.length === 0
-      ? "A5:X"
+      ? "A5:Y"
       : `${searchLetters[0]}5:${searchLetters[searchLetters.length - 1]}`;
 
   // SORT FUNCTIONS
@@ -416,11 +455,26 @@ const addNewPlan = auth => (req, res) => {
 
   let appendedRange = "A:G";
 
-  if (req.body.NOTES) {
+  if (req.body.NOTES && !req.body.Plans_Uploaded) {
     appendedRange = "A:V";
     appendedArray = appendedArray
       .concat(Array(14).fill(null))
       .concat(req.body.NOTES);
+      
+  } else if (req.body.NOTES && req.body.Plans_Uploaded) {
+    appendedRange = "A:Y";
+    appendedArray = appendedArray
+      .concat(Array(14).fill(null))
+      .concat(req.body.NOTES)
+      .concat([null, null])
+      .concat(req.body.Plans_Uploaded);
+
+  } else if (!req.body.NOTES && req.body.Plans_Uploaded) {
+    appendedRange = "A:Y";
+    appendedArray = appendedArray
+      .concat(Array(17).fill(null))
+      .concat(req.body.Plans_Uploaded);
+
   }
 
   const request = {
@@ -439,7 +493,7 @@ const addNewPlan = auth => (req, res) => {
   sheets.spreadsheets.values.append(request, (err, result) => {
     if (err) {
       console.log(err);
-      return res.json({ err: err });
+      return res.status(500).json({ err: err });
     }
     return res.json({ message: "data appended successfully" });
   });
@@ -488,7 +542,7 @@ const markItemComplete = auth => (conditional = "takeoff") => (req, res) => {
   sheets.spreadsheets.values.update(request, (err, result) => {
     if (err) {
       console.log(err);
-      return res.json({err: err});
+      return res.status(500).json({err: err});
     }
     return res.json({ message: "Updated successfully" });
   });
