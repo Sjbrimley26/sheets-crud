@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
+    "fetch-download": "^1.0.0",
     "hoek": "^5.0.3",
     "node-sass": "^4.9.0",
     "oboe": "^2.1.4",

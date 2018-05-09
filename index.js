@@ -9,14 +9,16 @@ import fileUpload from "express-fileupload";
 const PORT = process.env.PORT || 3000;
 const app = express();
 app.use(compression());
-app.use(fileUpload({
-  safeFileNames: true,
-  preserveExtension: 4,
-  abortOnLimit: true
-}));
+app.use(
+  fileUpload({
+    safeFileNames: true,
+    preserveExtension: 4,
+    abortOnLimit: true
+  })
+);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('client/build/'));
+app.use(express.static("client/build/"));
 
 const fs = require("fs");
 const readline = require("readline");
@@ -169,7 +171,7 @@ const letterNumbers = {
   V: 21,
   W: 22,
   X: 23,
-  Y: 24,
+  Y: 24
 };
 
 const numberFields = {
@@ -250,8 +252,9 @@ const start = async auth => {
     const { file } = req.files;
     let periodI = file.name.lastIndexOf(".");
     title += file.name.substring(periodI);
-    
-    file.mv(path.resolve(`./plans/${title}`))
+
+    file
+      .mv(path.resolve(`./plans/${title}`))
       .then(() => {
         console.log("File uploaded!");
         res.send({ title: title });
@@ -262,17 +265,15 @@ const start = async auth => {
       });
   });
 
-  app.post("/api/getPlan", (req, res) => {
-    console.log(req.body);
-    const { title } = req.body;
+  app.post("/api/getPlan/:fileName", (req, res) => {
+    const title = req.params.fileName;
     const file = path.resolve(`./plans/${title}`);
-    console.log(file);
-    res.download(file, (err) => {
+    res.download(file, err => {
       if (err) {
         console.log("Error downloading plan", err);
       }
     });
-  })
+  });
 
   app.listen(PORT, () => {
     console.log("Now listening on port", PORT);
@@ -382,12 +383,11 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
             }, {});
         });
 
-        //sortfn(objectifiedRows).forEach(row => dataStream.push(JSON.stringify(row)));
-        //dataStream.push(JSON.stringify(sortfn(objectifiedRows)));
-        //dataStream.push(null);
-        //dataStream.pipe(res);
-        res.json(sortfn(objectifiedRows));
-
+      //sortfn(objectifiedRows).forEach(row => dataStream.push(JSON.stringify(row)));
+      //dataStream.push(JSON.stringify(sortfn(objectifiedRows)));
+      //dataStream.push(null);
+      //dataStream.pipe(res);
+      res.json(sortfn(objectifiedRows));
     } else {
       res.json({ err: "No Data Found!" });
     }
@@ -460,7 +460,6 @@ const addNewPlan = auth => (req, res) => {
     appendedArray = appendedArray
       .concat(Array(14).fill(null))
       .concat(req.body.NOTES);
-      
   } else if (req.body.NOTES && req.body.Plans_Uploaded) {
     appendedRange = "A:Y";
     appendedArray = appendedArray
@@ -468,13 +467,11 @@ const addNewPlan = auth => (req, res) => {
       .concat(req.body.NOTES)
       .concat([null, null])
       .concat(req.body.Plans_Uploaded);
-
   } else if (!req.body.NOTES && req.body.Plans_Uploaded) {
     appendedRange = "A:Y";
     appendedArray = appendedArray
       .concat(Array(17).fill(null))
       .concat(req.body.Plans_Uploaded);
-
   }
 
   const request = {
@@ -504,27 +501,22 @@ const markItemComplete = auth => (conditional = "takeoff") => (req, res) => {
   id = parseInt(id);
   const sheets = google.sheets({ version: "v4", auth });
   const date = new Date();
-  const dateString = date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear();
+  const dateString =
+    date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear();
 
-  let range = conditional === "takeoff" ?
-    `H${id + 4}:I${id + 4}`
-    : conditional === "quote" ?
-    `J${id + 4}:K${id + 4}`
-    : "";
+  let range =
+    conditional === "takeoff"
+      ? `H${id + 4}:I${id + 4}`
+      : conditional === "quote"
+        ? `J${id + 4}:K${id + 4}`
+        : "";
 
-    let appendedArray = [
-      dateString,
-      name
-    ];
-  
-    if (conditional === "quote" && number) {
-      range = `J${id + 4}:X${id + 4}`;
-      appendedArray = appendedArray
-        .concat((Array(12).fill(null)))
-        .concat(number);
-    }
+  let appendedArray = [dateString, name];
 
-  
+  if (conditional === "quote" && number) {
+    range = `J${id + 4}:X${id + 4}`;
+    appendedArray = appendedArray.concat(Array(12).fill(null)).concat(number);
+  }
 
   const request = {
     spreadsheetId: process.env.SHEETID,
@@ -542,9 +534,8 @@ const markItemComplete = auth => (conditional = "takeoff") => (req, res) => {
   sheets.spreadsheets.values.update(request, (err, result) => {
     if (err) {
       console.log(err);
-      return res.status(500).json({err: err});
+      return res.status(500).json({ err: err });
     }
     return res.json({ message: "Updated successfully" });
   });
-  
 };

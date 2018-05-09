@@ -85,9 +85,7 @@ class Receiver extends Component {
       })
         .then(res => res.json())
         .then(json => {
-          console.log(json);
           const { title } = json;
-          console.log(title);
           if (!title) {
             throw ("No title returned from server!");
           }
@@ -113,16 +111,13 @@ class Receiver extends Component {
             },
             body: JSON.stringify(dataToAppend)
           })
-            .then(res => res.json())
-            .then(data => console.log(data))
             .catch(err =>
               alert("There was an error creating the new record!", err)
             );
             
-          
         })
         .then(() => this.navTo.call(this, "/"))
-        .catch(err => console.log(err));
+        .catch(err => alert("There was an error creating the record", err));
         
 
     } else { // No File
@@ -148,8 +143,6 @@ class Receiver extends Component {
         },
         body: JSON.stringify(dataToAppend)
       })
-        .then(res => res.json())
-        .then(data => console.log(data))
         .catch(err =>
           alert("There was an error creating the new record!", err)
         )

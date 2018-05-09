@@ -8,4 +8,4 @@ client/build/
 
 .env
 
-plans/
+plans/*

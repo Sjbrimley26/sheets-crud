@@ -247,21 +247,6 @@ class Home extends Component {
       .finally(() => this.getFields.call(this, ["TAKEOFF_INCOMPLETE"], 1));
   }
 
-  downloadPlan(title) {
-    console.log(title, " sent!");
-    fetch("/api/getPlan", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/download",
-        "Content-Disposition": "attachment"
-      },
-      body: JSON.stringify({
-        title: title
-      })
-    })
-      .catch(err => console.log(err));
-  }
-
   render() {
 
     let { activeButton } = this.state;
@@ -381,19 +366,16 @@ class Home extends Component {
                         return null;
                       }
                       if (prop === "Plans_Uploaded") {
-                        console.log(val);
-                        return (
-                          <div className="flex" key={j}>
+                        return <div className="flex" key={j}>
                             <div className="column miniTopAndBottomMargin">
                               Look at Plans
                             </div>
                             <div className="column--wide miniTopAndBottomMargin">
-                              <button onClick={this.downloadPlan.bind(this, val)}>
-                                Download
-                              </button>
+                              <form action={`/api/getPlan/${val}`} method="post">
+                                <input type="submit" value="Download"/>
+                              </form>
                             </div>
-                          </div>
-                        );
+                          </div>;
                       }
                     }
                   })}
