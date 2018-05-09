@@ -248,31 +248,11 @@ const start = async auth => {
   });
 
   app.post("/api/uploadPlan", (req, res) => {
-    let { title } = req.body;
-    const { file } = req.files;
-    let periodI = file.name.lastIndexOf(".");
-    title += file.name.substring(periodI);
-
-    file
-      .mv(path.resolve(`./plans/${title}`))
-      .then(() => {
-        console.log("File uploaded!");
-        res.send({ title: title });
-      })
-      .catch(err => {
-        console.log("Error uploading file", err);
-        res.status(500).send({ err: err });
-      });
+    uploadFile("plans")(req, res);
   });
 
   app.post("/api/getPlan/:fileName", (req, res) => {
-    const title = req.params.fileName;
-    const file = path.resolve(`./plans/${title}`);
-    res.download(file, err => {
-      if (err) {
-        console.log("Error downloading plan", err);
-      }
-    });
+    downloadFile("plans")(req, res);
   });
 
   app.listen(PORT, () => {
@@ -538,4 +518,32 @@ const markItemComplete = auth => (conditional = "takeoff") => (req, res) => {
     }
     return res.json({ message: "Updated successfully" });
   });
+};
+
+const downloadFile = (option = "plans") => (req, res) => {
+  const title = req.params.fileName;
+  const file = path.resolve(`./${option}/${title}`);
+    res.download(file, err => {
+      if (err) {
+        console.log("Error downloading plan", err);
+      }
+    });
+};
+
+const uploadFile = (option = "plans") => (req, res) => {
+  let { title } = req.body;
+  const { file } = req.files;
+  let periodI = file.name.lastIndexOf(".");
+  title += file.name.substring(periodI);
+
+  file
+      .mv(path.resolve(`./${option}/${title}`))
+      .then(() => {
+        console.log("File uploaded!");
+        res.send({ title: title });
+      })
+      .catch(err => {
+        console.log("Error uploading file", err);
+        res.status(500).send({ err: err });
+      });
 };
