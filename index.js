@@ -526,6 +526,7 @@ const downloadFile = (option = "plans") => (req, res) => {
     res.download(file, err => {
       if (err) {
         console.log("Error downloading plan", err);
+        res.status(500).send("File not found!");
       }
     });
 };

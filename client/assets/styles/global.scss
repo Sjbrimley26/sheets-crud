@@ -84,6 +84,24 @@ html {
   }
 }
 
+.wrapWhenSmall {
+  @media (max-width: 375px) {
+    flex-wrap: wrap;
+  }
+}
+
+.propDiv {
+  border-bottom: 1px solid #ffffff61;
+  border-radius: 10px 0;
+
+  @media (max-width: 375px) {
+    border-right: 1px solid white;
+    border-radius: 0 10px 10px 0;
+    padding-right: 5px;
+    min-width: 50%;
+  }
+}
+
 .column--wide {
   flex: 2;
 }
@@ -192,12 +210,16 @@ html {
 .searchBar {
   margin: auto;
   display: inline-block;
-  margin: 0 0 10px 33%;
+  margin: 0 12px 10px 33%;
   width: 40%;
 }
 
 .floatRight {
   float: right;
+
+  @media (max-width: 375px) {
+    float: none;
+  }
 }
 
 .statusButton {
@@ -212,6 +234,10 @@ html {
   &:hover {
     background: #124668;
     color: #b6d9f0;
+  }
+
+  @media (max-width: 375px) {
+    margin-bottom: 10px;
   }
 }
 

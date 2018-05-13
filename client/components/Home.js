@@ -353,8 +353,8 @@ class Home extends Component {
                   {Object.entries(result).map((pair, j) => {
                     let [prop, val] = pair;
                     if (!["id", "Plans_Uploaded"].includes(prop)) {
-                      return <div className="flex" key={j}>
-                          <div className="column miniTopAndBottomMargin">
+                      return <div className="flex wrapWhenSmall" key={j}>
+                          <div className="column miniTopAndBottomMargin rightMargin propDiv">
                             {prettifyProp(prop)} :
                           </div>
                           <div className="column--wide miniTopAndBottomMargin">
@@ -366,7 +366,7 @@ class Home extends Component {
                         return null;
                       }
                       if (prop === "Plans_Uploaded") {
-                        return <div className="flex" key={j}>
+                        return <div className="flex wrapWhenSmall" key={j}>
                             <div className="column miniTopAndBottomMargin">
                               Look at Plans
                             </div>

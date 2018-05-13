@@ -111,12 +111,12 @@ class Receiver extends Component {
             },
             body: JSON.stringify(dataToAppend)
           })
+            .then(() => this.navTo.call(this, "/"))
             .catch(err =>
               alert("There was an error creating the new record!", err)
             );
             
         })
-        .then(() => this.navTo.call(this, "/"))
         .catch(err => alert("There was an error creating the record", err));
         
 
@@ -132,7 +132,8 @@ class Receiver extends Component {
       dataToAppend.JOB = job ? job : null;
       dataToAppend.EMAIL = email ? email : null;
   
-      if (notes) {
+      if (notes) { // This one is separate because the servver handles it differently
+                  //  if the req.body has a NOTES property
         dataToAppend.NOTES = notes;
       }
 
@@ -197,18 +198,54 @@ class Receiver extends Component {
             <div key={i} className="column wrap flex width80">
               <label className="column topAndBottomPadding">{field}</label>
               <div className="column--wide blueBackground flex">
-                <input
-                  ref={this.inputRefs[i]}
-                  key={value}
-                  onChange={this.handleInputChange}
-                  onKeyPress={this.handleEnter}
-                  value={this.state[value]}
-                  type="text"
-                  className={
-                    value +
-                    " column topAndBottomMargin leftAndRightMargin bigRightMargin planInput"
-                  }
-                />
+                {
+                  field === "Additional Notes"
+                    ? (
+                      < textarea
+                      ref = {
+                        this.inputRefs[i]
+                      }
+                      key = {
+                        value
+                      }
+                      onChange = {
+                        this.handleInputChange
+                      }
+                      value = {
+                        this.state[value]
+                      }
+                      type = "text"
+                      className = {
+                        value +
+                        " column topAndBottomMargin leftAndRightMargin bigRightMargin planInput tall"
+                      }
+                      />
+                    )
+                    : (
+                    < input
+                    ref = {
+                      this.inputRefs[i]
+                    }
+                    key = {
+                      value
+                    }
+                    onChange = {
+                      this.handleInputChange
+                    }
+                    onKeyPress = {
+                      this.handleEnter
+                    }
+                    value = {
+                      this.state[value]
+                    }
+                    type = "text"
+                    className = {
+                      value +
+                      " column topAndBottomMargin leftAndRightMargin bigRightMargin planInput"
+                    }
+                    />
+                    )
+                }
               </div>
             </div>
           );
@@ -216,7 +253,7 @@ class Receiver extends Component {
         <div className="column wrap flex width80">
           <label className="column topAndBottomPadding">Attach Plan</label>
           <div className="column--wide flex blueBackground">
-            <input type="file" className="autoMargin" onChange={this.handleFileUpload} />
+            <input type="file" className="autoMargin fileInput" onChange={this.handleFileUpload} />
           </div>
         </div>
         <div className="column width80 blueBackground topAndBottomPadding">
