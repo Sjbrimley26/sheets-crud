@@ -362,7 +362,21 @@ class Home extends Component {
                           </div>
                         </div>;
                     } else {
-                      return null;
+                      if (prop === "id") {
+                        return null;
+                      }
+                      if (prop === "Plans_Uploaded") {
+                        return <div className="flex wrapWhenSmall" key={j}>
+                            <div className="column miniTopAndBottomMargin">
+                              Look at Plans
+                            </div>
+                            <div className="column--wide miniTopAndBottomMargin">
+                              <form action={`/api/getPlan/${val}`} method="post">
+                                <input type="submit" value="Download"/>
+                              </form>
+                            </div>
+                          </div>;
+                      }
                     }
                   })}
                   {<Popup open={this.state.takeoffPopupOpen} modal>

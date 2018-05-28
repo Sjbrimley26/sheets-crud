@@ -13,6 +13,8 @@
   "devDependencies": {
     "copy-webpack-plugin": "^4.5.1",
     "css-loader": "^0.28.11",
+    "eslint": "^4.19.1",
+    "eslint-plugin-react": "^7.8.1",
     "html-webpack-plugin": "^3.2.0",
     "img-loader": "^2.0.1",
     "sass-loader": "^7.0.1",
@@ -25,6 +27,7 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
+    "fetch-download": "^1.0.0",
     "hoek": "^5.0.3",
     "node-sass": "^4.9.0",
     "oboe": "^2.1.4",

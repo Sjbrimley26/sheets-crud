@@ -4,7 +4,7 @@ import "../assets/styles/header.scss";
 import { withRouter } from "react-router-dom";
 
 const links = [
-  ["/", "Check Plans"],
+  ["/", "Search Plans"],
   ["/receive", "Receive A Plan"]
 ];
 

@@ -31,6 +31,10 @@ html {
   display: block;
 }
 
+.autoMargin {
+  margin: auto;
+}
+
 .width80 {
   width: 80%;
   margin-left: 5px;
@@ -84,6 +88,7 @@ html {
 
 .column--wide {
   flex: 2;
+  word-break: break-word;
 }
 
 .topAndBottomMargin {
@@ -196,12 +201,16 @@ html {
 .searchBar {
   margin: auto;
   display: inline-block;
-  margin: 0 0 10px 33%;
+  margin: 0 12px 10px 33%;
   width: 40%;
 }
 
 .floatRight {
   float: right;
+
+  @media (max-width: 450px) {
+    float: none;
+  }
 }
 
 .statusButton {
@@ -216,6 +225,10 @@ html {
   &:hover {
     background: #124668;
     color: #b6d9f0;
+  }
+
+  @media (max-width: 450px) {
+    margin-bottom: 10px;
   }
 }
 
