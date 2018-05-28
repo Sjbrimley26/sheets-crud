@@ -354,10 +354,10 @@ class Home extends Component {
                     let [prop, val] = pair;
                     if (prop !== "id") {
                       return <div className="flex" key={j}>
-                          <div className="column miniTopAndBottomMargin">
+                          <div className="column miniTopAndBottomMargin label">
                             {prettifyProp(prop)} :
                           </div>
-                          <div className="column--wide miniTopAndBottomMargin">
+                          <div className="column--wide miniMarginLeft miniTopAndBottomMargin">
                             {val}
                           </div>
                         </div>;
