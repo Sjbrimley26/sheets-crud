@@ -74,7 +74,7 @@ html {
       content: "";
       position: absolute;
       width: 20px;
-      height: 80px;
+      height: 120px;
       background: $normalBlue;
       margin-right: 32px;
       left: 5px;
@@ -89,6 +89,7 @@ html {
 .column--wide {
   flex: 2;
   word-break: break-word;
+  flex-basis: 300px;
 }
 
 .topAndBottomMargin {
@@ -115,6 +116,11 @@ html {
   margin-right: 10px;
 }
 
+.miniLeftAndRightMargin {
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
 .rightMargin {
   margin-right: 10px;
 }
@@ -132,6 +138,8 @@ html {
   width: 95%;
   border-right: 4px double rgb(4, 4, 94);
   border-bottom: 4px solid rgb(4, 4, 94);
+  border-top: 1px solid rgb(4, 4, 94);
+  border-left: 1px solid rgb(4, 4, 94);
   margin-top: 10px;
   padding: 10px 0 0 10px;
   border-radius: 0 0 35px 0;

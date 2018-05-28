@@ -357,7 +357,7 @@ class Home extends Component {
                           <div className="column miniTopAndBottomMargin label">
                             {prettifyProp(prop)} :
                           </div>
-                          <div className="column--wide miniMarginLeft miniTopAndBottomMargin">
+                          <div className="column--wide miniLeftAndRightMargin miniTopAndBottomMargin">
                             {val}
                           </div>
                         </div>;
