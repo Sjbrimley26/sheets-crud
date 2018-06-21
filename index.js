@@ -247,6 +247,10 @@ const start = async auth => {
     markItemComplete(auth)("quote")(req, res);
   });
 
+  app.post("/api/updateQuote", (req, res) => {
+    markQuoteUpdated(auth)(req, res);
+  })
+
   app.post("/api/uploadPlan", (req, res) => {
     uploadFile("plans")(req, res);
   });
@@ -519,6 +523,40 @@ const markItemComplete = auth => (conditional = "takeoff") => (req, res) => {
     return res.json({ message: "Updated successfully" });
   });
 };
+
+const markQuoteUpdated = auth => (req, res) => {
+  const { id, name, number } = req.body;
+  const intId = parseInt(id);
+  const sheets = google.sheets({ version: "v4", auth });
+  const date = new Date();
+  const dateString =
+    date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear();
+  
+    const range = `J${intId + 4}:X${intId + 4}`;
+
+  let appendedArray = [dateString, name].concat(Array(12).fill(null)).concat(number);
+  
+  const request = {
+    spreadsheetId: process.env.SHEETID,
+    range: range,
+    responseDateTimeRenderOption: "FORMATTED_STRING",
+    responseValueRenderOption: "FORMATTED_VALUE",
+    valueInputOption: "USER_ENTERED",
+    auth: auth,
+    resource: {
+      values: [appendedArray],
+      range: range
+    }
+  };
+
+  sheets.spreadsheets.values.update(request, (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ err: err });
+    }
+    return res.json({ message: "Updated successfully" });
+  });
+}
 
 const downloadFile = (option = "plans") => (req, res) => {
   const title = req.params.fileName;

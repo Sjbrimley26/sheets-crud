@@ -37,6 +37,7 @@ class Receiver extends Component {
       entered_by: "",
       notes: "",
       file: null,
+      sendingData: false
     };
   }
 
@@ -58,6 +59,8 @@ class Receiver extends Component {
     if (!(company || contact) || !phone || !entered_by || phone.length < 10) {
       return alert("Please complete all required fields!");
     }
+
+    this.setState({ sendingData: true });
 
     if (this.state.file) {
 
@@ -112,12 +115,16 @@ class Receiver extends Component {
             body: JSON.stringify(dataToAppend)
           })
             .then(() => this.navTo.call(this, "/"))
-            .catch(err =>
-              alert("There was an error creating the new record!", err)
-            );
+            .catch(err => {
+              alert("There was an error creating the new record!", err);
+              this.setState({ sendingData: false });
+            });
             
         })
-        .catch(err => alert("There was an error creating the record", err));
+        .catch(err => {
+          alert("There was an error creating the record", err);
+          this.setState({ sendingData: false });
+        });
         
 
     } else { // No File
@@ -144,10 +151,11 @@ class Receiver extends Component {
         },
         body: JSON.stringify(dataToAppend)
       })
-        .catch(err =>
-          alert("There was an error creating the new record!", err)
-        )
-        .finally(() => this.navTo.call(this, "/"));
+        .catch(err => {
+          alert("There was an error creating the new record!", err);
+          this.setState({ sendingData: false });
+        })
+        .then(() => this.navTo.call(this, "/"));
     
     }
 
@@ -188,7 +196,15 @@ class Receiver extends Component {
 
   render() {
     return (
+      
       <div className="flex--column">
+      {
+        this.state.sendingData ?
+          <div className="block column sendingPopup">
+            Sending data to server. Please do not refresh or exit the page.
+          </div>
+        : null
+      }
         <h1 className="block column">Receive a new plan</h1>
         <br />
         <div className="width80 blueBackground topBumper" />

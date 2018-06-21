@@ -48,6 +48,7 @@ class Home extends Component {
     this.markQuoteComplete = this.markQuoteComplete.bind(this);
     this.markTakeoffComplete = this.markTakeoffComplete.bind(this);
     this.closePopups = this.closePopups.bind(this);
+    this.markQuoteUpdated = this.markQuoteUpdated.bind(this);
 
     this.state = {
       loadingResults: true,
@@ -59,6 +60,7 @@ class Home extends Component {
       searchValue: "",
       takeoffPopupOpen: false,
       quotePopupOpen: false,
+      updateQuotePopupOpen: false,
       takeoffName: "",
       quoteName: "",
       selectedPlan: null,
@@ -164,6 +166,9 @@ class Home extends Component {
       case "quote":
         fn = this.markQuoteComplete.bind(this);
         break;
+      case "updateQuote":
+        fn = this.markQuoteUpdated.bind(this);
+        break;
     }
     if (e.key === "Enter") {
       fn();
@@ -199,7 +204,8 @@ class Home extends Component {
   closePopups() {
     return this.setState({
       takeoffPopupOpen: false,
-      quotePopupOpen: false
+      quotePopupOpen: false,
+      updateQuotePopupOpen: false
     });
   }
 
@@ -211,6 +217,11 @@ class Home extends Component {
   markQuoteComplete() {
     this.quoteCompleteFetch.call(this, this.state.selectedPlan, this.state.quoteName, this.state.quoteNumber);
     return this.setState({ quotePopupOpen: false });
+  }
+
+  markQuoteUpdated() {
+    this.quoteUpdateFetch.call(this, this.state.selectedPlan, this.state.quoteName, this.state.quoteNumber);
+    return this.setState({ updateQuotePopupOpen: false });
   }
 
   quoteCompleteFetch(id, name, number = "") {
@@ -245,6 +256,22 @@ class Home extends Component {
     })
       .catch(err => alert("Error completing take-off", err))
       .finally(() => this.getFields.call(this, ["TAKEOFF_INCOMPLETE"], 1));
+  }
+
+  quoteUpdateFetch(id, name, number) {
+    fetch("/api/updateQuote", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id,
+        name,
+        number
+      })
+    })
+      .catch(err => console.error("Error during quote update fetch", err))
+      .then(() => this.getFields.call(this, ["QUOTE_INCOMPLETE"], 2));
   }
 
   render() {
@@ -342,17 +369,39 @@ class Home extends Component {
         {this.state.searchResults.length > 0
           ? this.state.searchResults.map((result, i) => {
               return <div className="resultDiv" key={i}>
-                  {!result.TAKE_OFF_MADE || !result.QUOTE_MADE ? <div className="flex--column floatRight rightMargin">
-                      {!result.TAKE_OFF_MADE ? <button value={result.id} onClick={this.togglePopup.bind(this, "takeoff", result.id)} className="statusButton topAndBottomMargin">
-                          Take-off Completed
-                        </button> : null}
-                      {!result.QUOTE_MADE ? <button value={result.id} onClick={this.togglePopup.bind(this, "quote", result.id)} className="statusButton">
-                          Quote Completed
-                        </button> : null}
-                    </div> : null}
+                      <div className="flex--column floatRight rightMargin">
+                        {
+                          !result.TAKE_OFF_MADE ? 
+                            <button
+                              value={result.id}
+                              onClick={this.togglePopup.bind(this, "takeoff", result.id)}
+                              className="statusButton topAndBottomMargin"
+                            >
+                              Take-off Completed
+                            </button>
+                          : null
+                        }
+                        {
+                          !result.QUOTE_MADE ? 
+                            <button
+                              value={result.id}
+                              onClick={this.togglePopup.bind(this, "quote", result.id)}
+                              className="statusButton"
+                            >
+                              Quote Completed
+                            </button> 
+                          : <button
+                              value={result.id}
+                              onClick={this.togglePopup.bind(this, "updateQuote", result.id)}
+                              className="statusButton"
+                            >
+                              Update Quote
+                            </button> 
+                        }
+                      </div> 
                   {Object.entries(result).map((pair, j) => {
                     let [prop, val] = pair;
-                    if (prop !== "id") {
+                    if (!(["id", "Plans_Uploaded"].includes(prop))) {
                       return <div className="flex" key={j}>
                           <div className="column miniTopAndBottomMargin label">
                             {prettifyProp(prop)} :
@@ -367,7 +416,7 @@ class Home extends Component {
                       }
                       if (prop === "Plans_Uploaded") {
                         return <div className="flex wrapWhenSmall" key={j}>
-                            <div className="column miniTopAndBottomMargin">
+                            <div className="column miniTopAndBottomMargin label">
                               Look at Plans
                             </div>
                             <div className="column--wide miniTopAndBottomMargin">
@@ -401,6 +450,30 @@ class Home extends Component {
                         </div>
                       </div>
                     </Popup>}
+                  {
+                    <Popup open={this.state.updateQuotePopupOpen} modal>
+                      <div className="popupDiv">
+                      <span> Who updated it? </span>
+                        <div>
+                          <input
+                            onKeyPress={this.handleEnter.bind(this, "updateQuote")}
+                            onChange={this.handleInputChange.bind(this, "quoteName")}
+                            type="text"
+                            value={this.state.quoteName}
+                          />
+                          <span> New Quote Number : </span>
+                          <input 
+                            onKeyPress={this.handleEnter.bind(this, "updateQuote")}
+                            onChange={this.handleInputChange.bind(this, "quoteNumber")}
+                            type="text"
+                            value={this.state.quoteNumber} 
+                          />
+                          <button onClick={this.markQuoteUpdated}>Submit</button>
+                          <button className="closeButton" onClick={this.closePopups}>X</button>
+                        </div>
+                      </div>
+                    </Popup>
+                  }
                   <br />
                 </div>;
             })
