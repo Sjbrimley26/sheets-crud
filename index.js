@@ -1,3 +1,4 @@
+import cluster from "cluster";
 import express from "express";
 const dotenv = require("dotenv").config();
 import path from "path";
@@ -5,6 +6,22 @@ import bodyParser from "body-parser";
 const compression = require("compression");
 const { Readable } = require("stream");
 import fileUpload from "express-fileupload";
+const fs = require("fs");
+const readline = require("readline");
+const { google } = require("googleapis");
+
+if (cluster.isMaster) {
+  var cpuCount = require("os").cpus().length;
+
+  for (var i = 0; i < cpuCount; i += 1) {
+    cluster.fork();
+  }
+
+  cluster.on("exit", function(worker) {
+    console.log("Worker %d died :(", worker.id);
+    cluster.fork();
+  });
+} else {
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -19,10 +36,6 @@ app.use(
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("client/build/"));
-
-const fs = require("fs");
-const readline = require("readline");
-const { google } = require("googleapis");
 const OAuth2Client = google.auth.OAuth2;
 const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
 const TOKEN_PATH = "credentials.json";
@@ -88,6 +101,55 @@ function getNewToken(oAuth2Client, callback) {
       callback(oAuth2Client);
     });
   });
+}
+
+  // MAIN LOOP
+
+const start = async auth => {
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "client/build/", "index.html"));
+});
+
+app.post("/api/DB", (req, res) => {
+  const { fields, sortOption } = req.body;
+    /*
+      Example:
+      body: JSON.stringify({
+        fields: ["COMPANY", "NOTES"],
+        sortOption: ["TAKEOFF_INCOMPLETE"] 
+      })
+    */
+  searchByFields(auth)(fields, sortOption)(req, res);
+});
+
+  app.post("/api/newPlan", (req, res) => {
+    addNewPlan(auth)(req, res);
+  });
+
+  app.post("/api/takeoffComplete", (req, res) => {
+    markItemComplete(auth)("takeoff")(req, res);
+  });
+
+  app.post("/api/quoteComplete", (req, res) => {
+    markItemComplete(auth)("quote")(req, res);
+  });
+
+  app.post("/api/updateQuote", (req, res) => {
+    markQuoteUpdated(auth)(req, res);
+  })
+
+  app.post("/api/uploadPlan", (req, res) => {
+    uploadFile("plans")(req, res);
+  });
+
+  app.post("/api/getPlan/:fileName", (req, res) => {
+    downloadFile("plans")(req, res);
+  });
+
+  app.listen(PORT, () => {
+    console.log("Now listening on port", PORT);
+  });
+};
 }
 
 const fields = {
@@ -213,56 +275,6 @@ const sortOptions = [
   "QUOTE_UNSENT",
   "QUOTE_NUMBER"
 ];
-
-// e.g. "CUSTOMER", "John Landry"
-
-// MAIN LOOP
-
-const start = async auth => {
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "client/build/", "index.html"));
-  });
-
-  app.post("/api/DB", (req, res) => {
-    const { fields, sortOption } = req.body;
-    /*
-      Example:
-      body: JSON.stringify({
-        fields: ["COMPANY", "NOTES"],
-        sortOption: ["TAKEOFF_INCOMPLETE"] 
-      })
-    */
-    searchByFields(auth)(fields, sortOption)(req, res);
-  });
-
-  app.post("/api/newPlan", (req, res) => {
-    addNewPlan(auth)(req, res);
-  });
-
-  app.post("/api/takeoffComplete", (req, res) => {
-    markItemComplete(auth)("takeoff")(req, res);
-  });
-
-  app.post("/api/quoteComplete", (req, res) => {
-    markItemComplete(auth)("quote")(req, res);
-  });
-
-  app.post("/api/updateQuote", (req, res) => {
-    markQuoteUpdated(auth)(req, res);
-  })
-
-  app.post("/api/uploadPlan", (req, res) => {
-    uploadFile("plans")(req, res);
-  });
-
-  app.post("/api/getPlan/:fileName", (req, res) => {
-    downloadFile("plans")(req, res);
-  });
-
-  app.listen(PORT, () => {
-    console.log("Now listening on port", PORT);
-  });
-};
 
 // SEARCH FUNCTION
 
