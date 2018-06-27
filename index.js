@@ -4,7 +4,7 @@ const dotenv = require("dotenv").config();
 import path from "path";
 import bodyParser from "body-parser";
 const compression = require("compression");
-const { Readable } = require("stream");
+// const { Readable } = require("stream");
 import fileUpload from "express-fileupload";
 const fs = require("fs");
 const readline = require("readline");
@@ -108,19 +108,19 @@ function getNewToken(oAuth2Client, callback) {
 const start = async auth => {
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "client/build/", "index.html"));
-});
+  });
 
-app.post("/api/DB", (req, res) => {
-  const { fields, sortOption } = req.body;
-    /*
-      Example:
-      body: JSON.stringify({
-        fields: ["COMPANY", "NOTES"],
-        sortOption: ["TAKEOFF_INCOMPLETE"] 
-      })
-    */
-  searchByFields(auth)(fields, sortOption)(req, res);
-});
+  app.post("/api/DB", (req, res) => {
+    const { fields, sortOption } = req.body;
+      /*
+        Example:
+        body: JSON.stringify({
+          fields: ["COMPANY", "NOTES"],
+          sortOption: ["TAKEOFF_INCOMPLETE"] 
+        })
+      */
+    searchByFields(auth)(fields, sortOption)(req, res);
+  });
 
   app.post("/api/newPlan", (req, res) => {
     addNewPlan(auth)(req, res);
@@ -180,62 +180,6 @@ const fields = {
   Plans_Uploaded: "Y"
 };
 
-const reverseFields = {
-  A: "COMPANY",
-  B: "CONTACT_NAME",
-  C: "JOB_NAME",
-  D: "PHONE",
-  E: "EMAIL",
-  F: "PLANS_RECEIVED",
-  G: "PLANS_RECEIVED_BY",
-  H: "TAKE_OFF_MADE",
-  I: "TAKE_OFF_MADE_BY",
-  J: "QUOTE_MADE",
-  K: "QUOTE_MADE_BY",
-  L: "QUOTE_CHECKED",
-  M: "QUOTE_CHECKED_BY",
-  N: "QUOTE_SENT",
-  O: "QUOTE_SENT_BY",
-  P: "OK",
-  Q: "REVISE",
-  R: "DENIED",
-  S: "DEADLINE",
-  T: "PURCHASE_MADE",
-  U: "MATERIALS_ORDERED",
-  V: "NOTES",
-  W: "id",
-  X: "QUOTE_NUMBER",
-  Y: "Plans_Uploaded"
-};
-
-const letterNumbers = {
-  A: 0,
-  B: 1,
-  C: 2,
-  D: 3,
-  E: 4,
-  F: 5,
-  G: 6,
-  H: 7,
-  I: 8,
-  J: 9,
-  K: 10,
-  L: 11,
-  M: 12,
-  N: 13,
-  O: 14,
-  P: 15,
-  Q: 16,
-  R: 17,
-  S: 18,
-  T: 19,
-  U: 20,
-  V: 21,
-  W: 22,
-  X: 23,
-  Y: 24
-};
-
 const numberFields = {
   0: "COMPANY",
   1: "CONTACT_NAME",
@@ -264,6 +208,7 @@ const numberFields = {
   24: "Plans_Uploaded"
 };
 
+/*
 const sortOptions = [
   "ALL",
   "TAKEOFF_INCOMPLETE",
@@ -275,9 +220,9 @@ const sortOptions = [
   "QUOTE_UNSENT",
   "QUOTE_NUMBER"
 ];
+*/
 
 // SEARCH FUNCTION
-
 const searchByFields = auth => (fieldArray = [], sortOption = []) => (
   req,
   res
@@ -290,19 +235,12 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
     .filter(value => value != null)
     .sort();
 
-  const searchFields = Object.keys(reverseFields)
-    .map(field => (searchLetters.includes(field) ? reverseFields[field] : null))
-    .filter(value => value != null);
-
-  const rowNumbers = searchLetters.map(letter => letterNumbers[letter]);
-
   const range =
     fieldArray.length === 0
       ? "A5:Y"
       : `${searchLetters[0]}5:${searchLetters[searchLetters.length - 1]}`;
 
   // SORT FUNCTIONS
-
   let sortFunction;
 
   const allSort = results => {
@@ -332,9 +270,11 @@ const searchByFields = auth => (fieldArray = [], sortOption = []) => (
   };
 
   const filterByFieldName = field => name => results => {
+    const nameReg = new RegExp(name, "i");
     return results.filter(item => {
       return (
-        item.hasOwnProperty(field) && new RegExp(name, "i").test(item[field])
+        item.hasOwnProperty(field) &&
+        nameReg.test(item[field])
       );
     });
   };
@@ -438,7 +378,10 @@ const addNewPlan = auth => (req, res) => {
   const sheets = google.sheets({ version: "v4", auth });
   const date = new Date();
   const dateString =
-    date.getMonth() + 1 + "/" + date.getDate() + "/" + date.getFullYear();
+    date.getMonth() + 1 +
+    "/" + date.getDate() + 
+    "/" + date.getFullYear();
+  
   let appendedArray = [
     req.body.COMPANY,
     req.body.CONTACT,

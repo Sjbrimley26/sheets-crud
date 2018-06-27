@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently \"nodemon --exec babel-node index\" \"npm run build --prefix client\"",
+    "dev": "concurrently \"nodemon --exec babel-node index\" \"npm run dev --prefix client\"",
     "start": "nodemon --exec babel-node index",
-    "build": "concurrently \"nodemon --exec babel-node index\" \"npm run build:production --prefix client\""
+    "build": "concurrently \"nodemon --exec babel-node index\" \"npm run build --prefix client\""
   },
   "author": "",
   "license": "ISC",

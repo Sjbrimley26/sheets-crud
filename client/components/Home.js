@@ -30,12 +30,35 @@ const prettifyProp = name => {
   return name.replace(/_/g, " ");
 };
 
+/*
+
 const handleJSONResponse = json => {
   if (json.err) {
     return Promise.reject("Error fetching data", json.err);
   } else {
     return Promise.resolve(json);
   }
+};
+
+*/
+
+const setInitialState = () => {
+  return {
+    loadingResults: true,
+    searchResults: [],
+    searchType: "TAKEOFF_INCOMPLETE",
+    searchBarOpen: false,
+    selectedButton: "",
+    activeButton: 1,
+    searchValue: "",
+    takeoffPopupOpen: false,
+    quotePopupOpen: false,
+    updateQuotePopupOpen: false,
+    takeoffName: "",
+    quoteName: "",
+    selectedPlan: null,
+    quoteNumber: "",
+  };
 };
 
 class Home extends Component {
@@ -50,22 +73,7 @@ class Home extends Component {
     this.closePopups = this.closePopups.bind(this);
     this.markQuoteUpdated = this.markQuoteUpdated.bind(this);
 
-    this.state = {
-      loadingResults: true,
-      searchResults: [],
-      searchType: "TAKEOFF_INCOMPLETE",
-      searchBarOpen: false,
-      selectedButton: "",
-      activeButton: 1,
-      searchValue: "",
-      takeoffPopupOpen: false,
-      quotePopupOpen: false,
-      updateQuotePopupOpen: false,
-      takeoffName: "",
-      quoteName: "",
-      selectedPlan: null,
-      quoteNumber: "",
-    };
+    this.state = setInitialState()
   }
 
   componentDidMount() {
@@ -276,51 +284,69 @@ class Home extends Component {
 
   render() {
 
-    let { activeButton } = this.state;
-
-    const getClassName = (name, index) => {
-      if (index !== activeButton) {
-        return name;
-      } else {
-        return name + " active";
-      }
-    };
-
     return (
       <div>
-        <div className="options flex topAndBottomMargin width80 spaceBetween">
+        { render_sort_buttons(this) }
+        {this.state.searchBarOpen ? (
+          render_search_bar(this)
+        ) : null}
+        {this.state.loadingResults ? (
+          <div className="loader">Loading...</div>
+        ) : null}
+        {this.state.searchResults.length > 0
+          ? render_search_results(this)
+          : null}
+      </div>
+    );
+  }
+}
+
+const render_sort_buttons = (context) => {
+  const { activeButton } = context;
+
+  const getClassName = (name, index) => {
+    if (index !== activeButton) {
+      return name;
+    } else {
+      return name + " active";
+    }
+  };
+  
+  return (
+    <div>
+      <div className="options flex topAndBottomMargin width80 spaceBetween">
           <button
-            onClick={this.getFields.bind(this, [sortOptions[2]], 0)}
+            onClick={context.getFields.bind(context, [sortOptions[2]], 0)}
             className={getClassName("column selector", 0)}
           >
             All
           </button>
           <button
-            onClick={this.getFields.bind(this, [sortOptions[0]], 1)}
+            onClick={context.getFields.bind(context, [sortOptions[0]], 1)}
             className={getClassName("column selector", 1)}
           >
             Incomplete Takeoffs
           </button>
           <button
-            onClick={this.getFields.bind(this, [sortOptions[1]], 2)}
+            onClick={context.getFields.bind(context, [sortOptions[1]], 2)}
             className={getClassName("column selector", 2)}
           >
             Incomplete Quotes
           </button>
           <button
-            onClick={this.openSearchBar(3)}
+            onClick={context.openSearchBar(3)}
             className={getClassName("column selector", 3)}
           >
             Search by Customer
           </button>
           <button
-            onClick={this.openSearchBar(4)}
+            onClick={context.openSearchBar(4)}
             className={getClassName("column selector", 4)}
           >
             Search By Company
           </button>
           <button
-            onClick={this.openSearchBar(5)}
+            onClick={context.openSearchBar(5)}
             className={getClassName("column selector", 5)}
           >
             Search by Job Name
@@ -328,159 +354,248 @@ class Home extends Component {
         </div>
         <div className="options options2 flex topAndBottomMargin justifyCenter">
           <button
-            onClick={this.getFields.bind(this, [sortOptions[6]], 6)}
+            onClick={context.getFields.bind(context, [sortOptions[6]], 6)}
             className={getClassName("column selector", 6)}
           >
             Unchecked Quotes
           </button>
           <button
-            onClick={this.getFields.bind(this, [sortOptions[7]], 7)}
+            onClick={context.getFields.bind(context, [sortOptions[7]], 7)}
             className={getClassName("column selector", 7)}
           >
             Unsent Quotes
           </button>
           <button
-            onClick={this.openSearchBar(8)}
+            onClick={context.openSearchBar(8)}
             className={getClassName("column selector", 8)}
           >
             Search by Quote Number
           </button>
         </div>
-        {this.state.searchBarOpen ? (
+    </div>
+  );
+};
+
+const render_search_bar = context => {
+  return (
+    <div>
+      <input
+        ref={context.searchRef}
+        onKeyPress={context.handleEnter.bind(context, "search")}
+        onChange={context.handleInputChange.bind(context, "searchValue")}
+        className="searchBar"
+        type="text"
+      />
+      <button
+        onClick={context.handleSearch}
+        className="selector miniMarginLeft miniTopAndBottomMargin"
+      >
+        Search
+      </button>
+    </div>
+  )
+};
+
+const render_search_results = context => {
+  const {
+    searchResults
+  } = context.state;
+
+  return (
+    searchResults.map((result, i) => {
+      return <div className="resultDiv" key={i}>
+          { render_status_buttons(context, result) }
+          { Object.entries(result).map(render_result_div) }
+          { render_popups(context) }
+          <br />
+        </div>;
+    })
+  );
+};
+
+const render_status_buttons = (context, result) => {
+  const render_status_button = option => {
+    let buttonTitle;
+
+    switch (option) {
+      case "takeoff":
+        buttonTitle = "Take-off Completed";
+        break;
+      case "quote":
+        buttonTitle = "Quote Completed";
+        break;
+      case "updateQuote":
+        buttonTitle = "Update Quote";
+        break;
+    }
+
+    return (
+      <button 
+        value={result.id}
+        onClick={context.togglePopup.bind(context, option, result.id)}
+        className="statusButton"
+      >
+      { buttonTitle }
+      </button>
+    );
+  };
+  
+  return (
+    <div className="flex--column floatRight rightMargin">
+      {
+        !result.TAKE_OFF_MADE ? 
+         render_status_button("takeoff")
+         : null
+      }
+      {
+        !result.QUOTE_MADE ? 
+          render_status_button("quote")
+        : render_status_button("updateQuote")
+      }
+    </div> 
+  );
+};
+
+const render_popups = context => {
+  const {
+    takeoffPopupOpen,
+    quotePopupOpen,
+    updateQuotePopupOpen,
+    takeoffName,
+    quoteName,
+    quoteNumber
+  } = context.state;
+
+  const {
+    handleEnter,
+    handleInputChange,
+    markQuoteComplete,
+    markTakeoffComplete,
+    markQuoteUpdated,
+    closePopups
+  } = context;
+
+  const render_popup = option => {
+    let 
+      popupOpen, 
+      keypress = option, 
+      change, 
+      change2, 
+      click,
+      value,
+      value2;
+
+    switch (option) {
+      case "takeoff":
+        popupOpen = takeoffPopupOpen;
+        change = "takeoffName";
+        value = takeoffName;
+        click = markTakeoffComplete;
+        break;
+
+      case "quote":
+        popupOpen = quotePopupOpen;
+        change = "quoteName";
+        change2 = "quoteNumber";
+        value = quoteName;
+        value2 = quoteNumber;
+        click = markQuoteComplete;
+        break;
+
+      case "updateQuote":
+        popupOpen = updateQuotePopupOpen;
+        change = "quoteName";
+        change2 = "quoteNumber";
+        value = quoteName;
+        value2 = quoteNumber;
+        click = markQuoteUpdated;
+        break;
+    }
+
+    return (
+      <Popup open={popupOpen} modal>
+        <div className="popupDiv">
+          <span> Who completed it? </span>
           <div>
             <input
-              ref={this.searchRef}
-              onKeyPress={this.handleEnter.bind(this, "search")}
-              onChange={this.handleInputChange.bind(this, "searchValue")}
-              className="searchBar"
+              onKeyPress={handleEnter.bind(context, keypress)}
+              onChange={handleInputChange.bind(context, change)}
               type="text"
+              value={value}
             />
-            <button
-              onClick={this.handleSearch}
-              className="selector miniMarginLeft miniTopAndBottomMargin"
-            >
-              Search
-            </button>
+            {
+              value2 === quoteNumber ? (
+                <div>
+                  <span> Quote Number: </span>
+                  <input
+                    onKeyPress={handleEnter.bind(context, keypress)}
+                    onChange={handleInputChange.bind(context, change2)}
+                    type="text"
+                    value={value2}
+                  />
+                </div>
+              ) : null
+            }
+            <button onClick={click}>Submit</button>
+            <button className="closeButton" onClick={closePopups}>X</button>
           </div>
-        ) : null}
-        {this.state.loadingResults ? (
-          <div className="loader">Loading...</div>
-        ) : null}
-        {this.state.searchResults.length > 0
-          ? this.state.searchResults.map((result, i) => {
-              return <div className="resultDiv" key={i}>
-                      <div className="flex--column floatRight rightMargin">
-                        {
-                          !result.TAKE_OFF_MADE ? 
-                            <button
-                              value={result.id}
-                              onClick={this.togglePopup.bind(this, "takeoff", result.id)}
-                              className="statusButton topAndBottomMargin"
-                            >
-                              Take-off Completed
-                            </button>
-                          : null
-                        }
-                        {
-                          !result.QUOTE_MADE ? 
-                            <button
-                              value={result.id}
-                              onClick={this.togglePopup.bind(this, "quote", result.id)}
-                              className="statusButton"
-                            >
-                              Quote Completed
-                            </button> 
-                          : <button
-                              value={result.id}
-                              onClick={this.togglePopup.bind(this, "updateQuote", result.id)}
-                              className="statusButton"
-                            >
-                              Update Quote
-                            </button> 
-                        }
-                      </div> 
-                  {Object.entries(result).map((pair, j) => {
-                    let [prop, val] = pair;
-                    if (!(["id", "Plans_Uploaded"].includes(prop))) {
-                      return <div className="flex" key={j}>
-                          <div className="column miniTopAndBottomMargin label">
-                            {prettifyProp(prop)} :
-                          </div>
-                          <div className="column--wide miniLeftAndRightMargin miniTopAndBottomMargin">
-                            {val}
-                          </div>
-                        </div>;
-                    } else {
-                      if (prop === "id") {
-                        return null;
-                      }
-                      if (prop === "Plans_Uploaded") {
-                        return <div className="flex wrapWhenSmall" key={j}>
-                            <div className="column miniTopAndBottomMargin label">
-                              Look at Plans
-                            </div>
-                            <div className="column--wide miniTopAndBottomMargin">
-                              <form action={`/api/getPlan/${val}`} method="post">
-                                <input type="submit" value="Download"/>
-                              </form>
-                            </div>
-                          </div>;
-                      }
-                    }
-                  })}
-                  {<Popup open={this.state.takeoffPopupOpen} modal>
-                      <div className="popupDiv">
-                        <span> Who completed it? </span>
-                        <div>
-                          <input onKeyPress={this.handleEnter.bind(this, "takeoff")} onChange={this.handleInputChange.bind(this, "takeoffName")} type="text" value={this.state.takeoffName} />
-                          <button onClick={this.markTakeoffComplete}>Submit</button>
-                          <button className="closeButton" onClick={this.closePopups}>X</button>
-                        </div>
-                      </div>
-                    </Popup>}
-                  {<Popup open={this.state.quotePopupOpen} modal>
-                      <div className="popupDiv">
-                        <span> Who completed it? </span>
-                        <div>
-                          <input onKeyPress={this.handleEnter.bind(this, "quote")} onChange={this.handleInputChange.bind(this, "quoteName")} type="text" value={this.state.quoteName} />
-                          <span> Quote Number : </span>
-                          <input onKeyPress={this.handleEnter.bind(this, "quote")} onChange={this.handleInputChange.bind(this, "quoteNumber")} type="text" value={this.state.quoteNumber} />
-                          <button onClick={this.markQuoteComplete}>Submit</button>
-                          <button className="closeButton" onClick={this.closePopups}>X</button>
-                        </div>
-                      </div>
-                    </Popup>}
-                  {
-                    <Popup open={this.state.updateQuotePopupOpen} modal>
-                      <div className="popupDiv">
-                      <span> Who updated it? </span>
-                        <div>
-                          <input
-                            onKeyPress={this.handleEnter.bind(this, "updateQuote")}
-                            onChange={this.handleInputChange.bind(this, "quoteName")}
-                            type="text"
-                            value={this.state.quoteName}
-                          />
-                          <span> New Quote Number : </span>
-                          <input 
-                            onKeyPress={this.handleEnter.bind(this, "updateQuote")}
-                            onChange={this.handleInputChange.bind(this, "quoteNumber")}
-                            type="text"
-                            value={this.state.quoteNumber} 
-                          />
-                          <button onClick={this.markQuoteUpdated}>Submit</button>
-                          <button className="closeButton" onClick={this.closePopups}>X</button>
-                        </div>
-                      </div>
-                    </Popup>
-                  }
-                  <br />
-                </div>;
-            })
-          : null}
+        </div>
+      </Popup>
+    );
+  };
+
+  return (
+    <div>
+      { render_popup("takeoff") }
+      { render_popup("quote") }
+      { render_popup("updateQuote") }
+    </div>
+  );
+};
+
+const render_result_div = (entry, index) => {
+  const specialProps = [
+    "id",
+    "Plans_Uploaded"
+  ];
+
+  let [prop, val] = entry;
+
+  if (!(specialProps.includes(prop))) {
+    return (
+      <div className="flex" key={index}>
+        <div className="column miniTopAndBottomMargin label">
+          { prettifyProp(prop) } :
+        </div>
+        <div className="column--wide miniLeftAndRightMargin miniTopAndBottomMargin">
+          { val }
+        </div>
       </div>
     );
   }
-}
+
+  else {
+    // Should contain an if statement for every item in the specialProps array
+    if (prop === "id") {
+      return null;
+    }
+
+    if (prop === "Plans_Uploaded") {
+      return (
+        <div className="flex wrapWhenSmall" key={index}>
+          <div className="column miniTopAndBottomMargin label">
+            Look at Plans
+          </div>
+          <div className="column--wide miniTopAndBottomMargin">
+            <form action={`/api/getPlan/${val}`} method="post">
+              <input type="submit" value="Download"/>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+  }
+};
 
 export default Home;
