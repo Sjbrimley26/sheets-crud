@@ -54,6 +54,8 @@ const setInitialState = () => {
     takeoffPopupOpen: false,
     quotePopupOpen: false,
     updateQuotePopupOpen: false,
+    checkedPopupOpen: false,
+    sentPopupOpen: false,
     takeoffName: "",
     quoteName: "",
     selectedPlan: null,
@@ -72,6 +74,8 @@ class Home extends Component {
     this.markTakeoffComplete = this.markTakeoffComplete.bind(this);
     this.closePopups = this.closePopups.bind(this);
     this.markQuoteUpdated = this.markQuoteUpdated.bind(this);
+    this.markQuoteChecked = this.markQuoteChecked.bind(this);
+    this.markQuoteSent = this.markQuoteSent.bind(this);
 
     this.state = setInitialState()
   }
@@ -177,6 +181,12 @@ class Home extends Component {
       case "updateQuote":
         fn = this.markQuoteUpdated.bind(this);
         break;
+      case "sent":
+        fn = this.markQuoteSent.bind(this);
+        break;
+      case "checked":
+        fn = this.markQuoteChecked.bind(this);
+        break;
     }
     if (e.key === "Enter") {
       fn();
@@ -230,6 +240,46 @@ class Home extends Component {
   markQuoteUpdated() {
     this.quoteUpdateFetch.call(this, this.state.selectedPlan, this.state.quoteName, this.state.quoteNumber);
     return this.setState({ updateQuotePopupOpen: false });
+  }
+
+  markQuoteChecked() {
+    const quoteCheckFetch = (id, name) => {
+      fetch("/api/checkQuote", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id,
+          name
+        })
+      })
+        .catch(err => console.err("Error during check quote fetch", err))
+        .then(() => this.getFields.call(this, ["QUOTE_UNCHECKED"], 6));
+    };
+
+    quoteCheckFetch(this.state.selectedPlan, this.state.quoteName);
+    return this.setState({ checkedPopupOpen: false });
+  }
+
+  markQuoteSent() {
+    const quoteSentFetch = (id, name) => {
+      fetch("/api/checkQuote", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id,
+          name
+        })
+      })
+        .catch(err => console.err("Error during sent quote fetch", err))
+        .then(() => this.getFields.call(this, ["QUOTE_UNSENT"], 7));
+    };
+
+    quoteSentFetch(this.state.selectedPlan, this.state.quoteName);
+    return this.setState({ sentPopupOpen: false });
   }
 
   quoteCompleteFetch(id, name, number = "") {
@@ -427,6 +477,12 @@ const render_status_buttons = (context, result) => {
       case "updateQuote":
         buttonTitle = "Update Quote";
         break;
+      case "sent":
+        buttonTitle = "Quote Sent";
+        break;
+      case "checked":
+        buttonTitle = "Quote Checked";
+        break;
     }
 
     return (
@@ -452,6 +508,16 @@ const render_status_buttons = (context, result) => {
           render_status_button("quote")
         : render_status_button("updateQuote")
       }
+      {
+        !result.QUOTE_CHECKED ?
+        render_status_button("checked")
+        : null
+      }
+      {
+        !result.QUOTE_SENT ?
+        render_status_button("sent")
+        : null
+      }
     </div> 
   );
 };
@@ -461,6 +527,8 @@ const render_popups = context => {
     takeoffPopupOpen,
     quotePopupOpen,
     updateQuotePopupOpen,
+    checkedPopupOpen,
+    sentPopupOpen,
     takeoffName,
     quoteName,
     quoteNumber
@@ -509,6 +577,12 @@ const render_popups = context => {
         value = quoteName;
         value2 = quoteNumber;
         click = markQuoteUpdated;
+        break;
+      
+      case "checked":
+        popupOpen = checkedPopupOpen;
+        change = "quoteName";
+        value = quoteName;
         break;
     }
 
